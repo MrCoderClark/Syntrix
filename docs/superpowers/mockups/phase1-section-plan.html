@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Syntrix — Phase 1 Section Breakdown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f6f3ec; --paper-warm: #efeadf;
+    --ink: #1c1815; --ink-soft: #4a4239; --ink-faint: #8a7f72;
+    --rule: #d9d0bd; --rule-soft: #e8e1d4;
+    --surface: #ffffff; --accent: #e8472b; --accent-soft: #f4d4c9;
+    --tag-be: #5d2424; --tag-fe: #1e3a5f; --tag-full: #0d4d57; --tag-infra: #354823;
+    --display: "Fraunces", serif; --body: "Hanken Grotesk", system-ui, sans-serif; --mono: "JetBrains Mono", monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink); font-family: var(--body);
+    font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+    padding: 40px 48px; max-width: 1280px; margin: 0 auto;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; opacity: 0.3; z-index: 100;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.11 0 0 0 0 0.10 0 0 0 0 0.08 0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+  }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; }
+  h1 { font-family: var(--display); font-weight: 600; font-size: 44px; line-height: 1; letter-spacing: -0.035em; font-variation-settings: "opsz" 144, "SOFT" 30; margin-bottom: 12px; }
+  h1 em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 144, "SOFT" 100; }
+  h2 { font-family: var(--display); font-weight: 500; font-size: 22px; letter-spacing: -0.02em; margin: 44px 0 12px; font-variation-settings: "opsz" 100, "SOFT" 30; }
+  p.lede { color: var(--ink-soft); font-size: 15.5px; max-width: 72ch; margin-bottom: 24px; }
+
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 14px 0 24px; font-size: 13px; color: var(--ink-soft); }
+  .legend .k { display: inline-flex; align-items: center; gap: 8px; }
+  .legend .pill { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; padding: 3px 9px; border-radius: 4px; color: var(--paper); font-weight: 500; text-transform: uppercase; }
+
+  .timeline { position: relative; padding-left: 70px; margin: 24px 0; }
+  .timeline::before {
+    content: ""; position: absolute; left: 30px; top: 18px; bottom: 18px;
+    width: 2px; background: var(--rule); border-radius: 2px;
+  }
+
+  .section-card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 18px;
+    transition: all 200ms ease;
+  }
+  .section-card:hover { box-shadow: 0 22px 40px -22px rgba(28,24,21,0.22); border-color: var(--rule); }
+
+  .section-card::before {
+    content: ""; position: absolute;
+    left: -54px; top: 22px;
+    width: 16px; height: 16px;
+    border-radius: 999px;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    z-index: 2;
+  }
+  .section-card .num {
+    position: absolute;
+    left: -66px; top: 50px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+
+  .section-card .head {
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .section-card .head h3 {
+    font-family: var(--display);
+    font-weight: 500; font-size: 22px;
+    letter-spacing: -0.025em;
+    font-variation-settings: "opsz" 100, "SOFT" 40;
+  }
+  .section-card .head h3 em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 100, "SOFT" 100; }
+  .section-card .head .branch {
+    font-family: var(--mono); font-size: 12px;
+    background: var(--paper-warm);
+    color: var(--ink); padding: 3px 10px;
+    border-radius: 6px;
+  }
+  .section-card .head .scope {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-faint);
+    margin-left: auto;
+  }
+  .section-card .head .pill {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    padding: 2px 8px; border-radius: 4px; color: var(--paper);
+    font-weight: 500; text-transform: uppercase;
+  }
+  .pill.be { background: var(--tag-be); }
+  .pill.fe { background: var(--tag-fe); }
+  .pill.full { background: var(--tag-full); }
+  .pill.infra { background: var(--tag-infra); }
+
+  .ships { color: var(--ink-soft); font-size: 14.5px; line-height: 1.55; margin-bottom: 10px; }
+  .ships strong { color: var(--ink); }
+  .row { display: grid; grid-template-columns: 110px 1fr; gap: 8px 14px; padding: 7px 0; border-top: 1px solid var(--rule-soft); font-size: 13px; }
+  .row .lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-faint); padding-top: 2px; }
+  .row .v { color: var(--ink-soft); line-height: 1.5; }
+  .row .v code { font-family: var(--mono); font-size: 12px; background: var(--paper-warm); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+
+  .panel { background: var(--surface); border: 1px solid var(--rule-soft); border-radius: 14px; padding: 22px 26px; margin-bottom: 16px; }
+  .panel h3 { font-family: var(--display); font-weight: 500; font-size: 18px; letter-spacing: -0.01em; margin-bottom: 10px; }
+  .panel ul, .panel ol { margin: 6px 0 0 22px; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--paper-warm); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 880px) { .grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Design Section 5 / 5 — Phase 1 Section Breakdown</div>
+<h1>Phase 1, cut into <em>ten branches</em></h1>
+<p class="lede">Each card below is a single feature branch in your branch-per-section workflow. Ship one at a time. You commit, push, PR, merge, delete. Then the next branch is born from updated <code>main</code>. Dependencies flow downward — no section starts before its prerequisites land.</p>
+
+<div class="legend">
+  <span class="k"><span class="pill infra">infra</span> repo, infra, dev loop</span>
+  <span class="k"><span class="pill be">backend</span> mostly server work</span>
+  <span class="k"><span class="pill fe">frontend</span> mostly UI work</span>
+  <span class="k"><span class="pill full">full-stack</span> roughly even split</span>
+</div>
+
+<div class="timeline">
+
+  <!-- 01 -->
+  <article class="section-card">
+    <span class="num">01 / 10</span>
+    <div class="head">
+      <h3>The <em>scaffold</em></h3>
+      <span class="branch">feat/scaffold</span>
+      <span class="pill infra">infra</span>
+      <span class="scope">~1 day</span>
+    </div>
+    <p class="ships"><strong>Ships:</strong> a working dev loop. <code>make dev</code> brings up Postgres connection check, FastAPI hello-world, Next.js home page that fetches it. Pre-commit hooks live.</p>
+    <div class="row"><span class="lbl">Touches</span><span class="v"><code>backend/</code>, <code>frontend/</code>, <code>docker-compose.yml</code> (compose-extends Supabase containers, doesn't replace them), <code>Makefile</code>, <code>.pre-commit-config.yaml</code></span></div>
+    <div class="row"><span class="lbl">Tooling</span><span class="v">Python: <code>uv</code> + <code>ruff</code> + <code>black</code> + <code>mypy</code> + <code>pytest</code>. Frontend: <code>pnpm</code> + Next.js + TypeScript + Prettier + ESLint.</span></div>
+    <div class="row"><span class="lbl">Acceptance</span><span class="v">Visiting <code>localhost:3000</code> renders "Syntrix" pulled from FastAPI <code>/api/health</code>; <code>pytest</code> and <code>pnpm test</code> both run a placeholder green test.</span></div>
+  </article>
+
+  <!-- 02 -->
+  <article class="section-card">
+    <span class="num">02 / 10</span>
+    <div class="head">
+      <h3>Database <em>foundations</em></h3>
+      <span class="branch">feat/db</span>
+      <span class="pill be">backend</span>
+      <span class="scope">~1 day</span>
+    </div>
+    <p class="ships"><strong>Ships:</strong> isolated <code>syntrix</code> schema with all extensions and a working migration loop. No app tables yet — just the chassis.</p>
+    <div class="row"><span class="lbl">Touches</span><span class="v"><code>backend/app/core/db.py</code>, <code>backend/alembic/</code>, the first migration (schema + role + extensions).</span></div>
+    <div class="row"><span class="lbl">Key bits</span><span class="v">SQLAlchemy 2.0 async + <code>asyncpg</code>. Alembic <code>env.py</code> sets <code>version_table_schema="syntrix"</code> + <code>include_object</code> filter rejecting non-<code>syntrix</code> schemas. <code>syntrix_app</code> role. Test fixtures spin throwaway schemas per session.</span></div>
+    <div class="row"><span class="lbl">Acceptance</span><span class="v"><code>alembic upgrade head</code> creates the schema + extensions on the Supabase Postgres; <code>alembic downgrade base</code> cleanly drops them. Test runner connects, fixtures isolate.</span></div>
+  </article>
+
+  <!-- 03 -->
+  <article class="section-card">
+    <span class="num">03 / 10</span>
+    <div class="head">
+      <h3>The <em>design system</em></h3>
+      <span class="branch">feat/design-system</span>
+      <span class="pill fe">frontend</span>
+      <span class="scope">~2 days</span>
+    </div>
+    <p class="ships"><strong>Ships:</strong> the visual identity in code. Fraunces / Hanken Grotesk / JetBrains Mono via <code>next/font</code>. CSS variables for the full token system (colors, type scale, spacing, radii). Core shell components built and storied: <code>&lt;Sidebar&gt;</code>, <code>&lt;Topbar&gt;</code>, <code>&lt;Button&gt;</code>, <code>&lt;IconButton&gt;</code>, <code>&lt;Avatar&gt;</code>, <code>&lt;Tab&gt;</code>, <code>&lt;Input&gt;</code>, <code>&lt;PageHeader&gt;</code>, <code>&lt;Card&gt;</code>. Paper background + noise overlay site-wide. Wordmark component. 404 + loading skeleton states.</p>
+    <div class="row"><span class="lbl">Touches</span><span class="v"><code>frontend/styles/</code> tokens; <code>frontend/components/</code> primitives; <code>frontend/app/layout.tsx</code> shell.</span></div>
+    <div class="row"><span class="lbl">Acceptance</span><span class="v">A Storybook (or static "/styleguide" page) renders every primitive in every state. Both Sections 4 onward consume these — no <em>ad hoc</em> components.</span></div>
+  </article>
+
+  <!-- 04 -->
+  <article class="section-card">
+    <span class="num">04 / 10</span>
+    <div class="head">
+      <h3><em>Auth</em> — OAuth, cookies, edge middleware</h3>
+      <span class="branch">feat/auth</span>
+      <span class="pill full">full-stack</span>
+      <span class="scope">~3 days</span>
+    </div>
+    <p class="ships"><strong>Ships:</strong> end-to-end signin with GitHub / Google / Discord. Browser → Next.js → FastAPI → provider → cookies set → home. Logout, refresh, "log out everywhere." The first surface to land the rate-limit system.</p>
+    <div class="row"><span class="lbl">DB</span><span class="v"><code>syntrix.users</code> + <code>syntrix.oauth_identities</code> + <code>syntrix.refresh_tokens</code> + <code>syntrix.rate_limit_buckets</code></span></div>
+    <div class="row"><span class="lbl">Backend</span><span class="v"><code>authlib</code> integration, state-cookie HMAC, JWT issuance, <code>current_user</code> dependency, <code>perm.py</code> skeleton, rate-limit table + atomic refill+take helper.</span></div>
+    <div class="row"><span class="lbl">Frontend</span><span class="v">Next.js middleware (JWT verify), <code>/signin</code> page using the design system, account-aware top bar (avatar dropdown), logout. No profile pages yet.</span></div>
+    <div class="row"><span class="lbl">Acceptance</span><span class="v">Sign in with each provider works end-to-end; refresh extends session; logout invalidates; protected routes 401 cleanly; rate limit on <code>/auth/callback</code> kicks in at threshold.</span></div>
+  </article>
+
+  <!-- 05 -->
+  <article class="section-card">
+    <span class="num">05 / 10</span>
+    <div class="head">
+      <h3>User <em>profiles</em></h3>
+      <span class="branch">feat/profiles</span>
+      <span class="pill full">full-stack</span>
+      <span class="scope">~1.5 days</span>
+    </div>
+    <p class="ships"><strong>Ships:</strong> <code>/u/&lt;handle&gt;</code> public profile pages, <code>/settings/profile</code> edit form (display name, bio, audience tag). No avatar yet (Section 7 brings storage and back-fills avatars).</p>
+    <div class="row"><span class="lbl">Permission</span><span class="v">Edit own profile only.</span></div>
+    <div class="row"><span class="lbl">Acceptance</span><span class="v">Anonymous can view any profile. Signed-in user can edit own; cannot edit others. <code>handle</code> case-insensitive uniqueness enforced.</span></div>
+  </article>
+
+  <!-- 06 -->
+  <article class="section-card">
+    <span class="num">06 / 10</span>
+    <div class="head">
+      <h3><em>Communities</em></h3>
+      <span class="branch">feat/communities</span>
+      <span class="pill full">full-stack</span>
+      <span class="scope">~2.5 days</span>
+    </div>
+    <p class="ships"><strong>Ships:</strong> the community surface. <code>/communities</code> list, <code>/c/&lt;slug&gt;</code> community landing (with the per-community color signature + grainy art), join / leave, the "request a new community" form, and the minimal admin UI for approving requests.</p>
+    <div class="row"><span class="lbl">DB</span><span class="v"><code>syntrix.communities</code>, <code>syntrix.community_memberships</code>, <code>syntrix.community_requests</code></span></div>
+    <div class="row"><span class="lbl">Admin UI</span><span class="v">Bare-bones <code>/admin/community-requests</code> table: approve / reject + create community on approve. Gated by <code>is_admin</code>.</span></div>
+    <div class="row"><span class="lbl">Acceptance</span><span class="v">Admin can create a community via approving a request. Member can join/leave. Banned member sees the ban explicitly. Owner can rename + edit description; cannot delete.</span></div>
+  </article>
+
+  <!-- 07 -->
+  <article class="section-card">
+    <span class="num">07 / 10</span>
+    <div class="head">
+      <h3>Storage &amp; <em>avatars</em></h3>
+      <span class="branch">feat/storage</span>
+      <span class="pill full">full-stack</span>
+      <span class="scope">~2 days</span>
+    </div>
+    <p class="ships"><strong>Ships:</strong> the full upload pipeline. <code>StorageBackend</code> interface + <code>SupabaseStorageBackend</code> impl. <code>/api/uploads/sign</code> + <code>/api/uploads/finalize</code>. EXIF strip + content-type validation + dimensions. <code>tmp/</code> orphan sweep (scheduled task). Avatar upload flow on the profile edit page (the first consumer).</p>
+    <div class="row"><span class="lbl">DB</span><span class="v">No new tables here — <code>post_attachments</code> lands with Section 8 (posts), but the schema is designed so this section's pipeline plugs in unchanged.</span></div>
+    <div class="row"><span class="lbl">Acceptance</span><span class="v">Avatar upload round-trips; orphan tmp/ files expire after 24h; mime/dimension/EXIF validation rejects bad uploads with clear errors.</span></div>
+  </article>
+
+  <!-- 08 -->
+  <article class="section-card">
+    <span class="num">08 / 10</span>
+    <div class="head">
+      <h3><em>Posts</em></h3>
+      <span class="branch">feat/posts</span>
+      <span class="pill full">full-stack</span>
+      <span class="scope">~3 days <em style="font-style: italic; color: var(--accent);">— largest section</em></span>
+    </div>
+    <p class="ships"><strong>Ships:</strong> TipTap editor with the custom code-block (Shiki), image, link-preview, and table extensions. Markdown source-toggle. Post create / read / edit / delete. Post detail page (<code>/c/&lt;slug&gt;/p/&lt;id&gt;</code>). Image embeds use Section 7's pipeline. Link posts auto-fetch OG preview. Mod "remove post" action (writes <code>removed_at</code>).</p>
+    <div class="row"><span class="lbl">DB</span><span class="v"><code>syntrix.posts</code>, <code>syntrix.post_attachments</code>, <code>syntrix.mod_actions</code></span></div>
+    <div class="row"><span class="lbl">Note</span><span class="v">If the plan finds this section overflows ~3 days during writing-plans, split as <code>feat/posts-core</code> (text-only post CRUD) + <code>feat/posts-editor</code> (TipTap + images). The split point is clean.</span></div>
+    <div class="row"><span class="lbl">Acceptance</span><span class="v">Create a post with a code block and two images; edit it; remove one image and verify the orphan gets reaped; mod removes; restore-by-author works inside the 24h window.</span></div>
+  </article>
+
+  <!-- 09 -->
+  <article class="section-card">
+    <span class="num">09 / 10</span>
+    <div class="head">
+      <h3><em>Comments</em></h3>
+      <span class="branch">feat/comments</span>
+      <span class="pill full">full-stack</span>
+      <span class="scope">~2 days</span>
+    </div>
+    <p class="ships"><strong>Ships:</strong> threaded comments on post detail pages. TipTap (same editor), reply UI, depth-aware indentation, "show more replies" expansion. Comment delete (author) and remove (mod).</p>
+    <div class="row"><span class="lbl">DB</span><span class="v"><code>syntrix.comments</code> with <code>ltree</code> path; trigger increments <code>posts.comment_count</code>.</span></div>
+    <div class="row"><span class="lbl">Acceptance</span><span class="v">Comments render in correct tree order; deep threads load via <code>ltree</code> subtree fetch in one query; counter trigger matches reality.</span></div>
+  </article>
+
+  <!-- 10 -->
+  <article class="section-card">
+    <span class="num">10 / 10</span>
+    <div class="head">
+      <h3><em>Voting &amp; feeds</em></h3>
+      <span class="branch">feat/voting-feeds</span>
+      <span class="pill full">full-stack</span>
+      <span class="scope">~2 days</span>
+    </div>
+    <p class="ships"><strong>Ships:</strong> upvote / downvote on posts + comments. Postgres triggers maintain <code>score</code>. Hot / New / Top feed sorts on the home page and per-community page. The "your feed" view from the home mockup goes live.</p>
+    <div class="row"><span class="lbl">DB</span><span class="v"><code>syntrix.post_votes</code>, <code>syntrix.comment_votes</code>; triggers; functional index for the Hot formula.</span></div>
+    <div class="row"><span class="lbl">Algo</span><span class="v">Hot = <code>log10(max(abs(score), 1)) * sign(score) + (created_at - epoch) / 45000</code> (Reddit-style). Functional index makes this fast.</span></div>
+    <div class="row"><span class="lbl">Acceptance</span><span class="v">Vote / un-vote / flip-vote works; counter triggers stay accurate under concurrency (pgbench-style test); Hot feed orders sensibly across recent + popular.</span></div>
+  </article>
+
+</div>
+
+<h2>Cross-cutting concerns</h2>
+<div class="grid2">
+
+<div class="panel">
+  <h3>Permissions grow incrementally</h3>
+  <p>There is no standalone "permissions section." <code>app/auth/perm.py</code> starts in Section 4 with <code>current_user</code> and the first guard. Each subsequent section adds the functions it needs:</p>
+  <ul>
+    <li><strong>06 communities</strong> → <code>can_create_community_request</code>, <code>can_join</code>, <code>can_ban</code>, <code>can_rename_community</code>, <code>can_approve_request</code></li>
+    <li><strong>08 posts</strong> → <code>can_create_post</code>, <code>can_edit_post</code>, <code>can_remove_post</code>, <code>can_pin_post</code></li>
+    <li><strong>09 comments</strong> → <code>can_comment</code>, <code>can_edit_comment</code>, <code>can_remove_comment</code></li>
+    <li><strong>10 voting</strong> → <code>can_vote</code> (with self-vote guard)</li>
+  </ul>
+</div>
+
+<div class="panel">
+  <h3>Rate limits arrive in 04 and extend per section</h3>
+  <p>The <code>rate_limit_buckets</code> table + atomic refill+take helper land in Section 4 (auth — login is the most pressure-sensitive surface). Each subsequent section adds its own limit keys:</p>
+  <ul>
+    <li><strong>06</strong> → <code>community_request:user:&lt;uuid&gt;</code> (2/day)</li>
+    <li><strong>07</strong> → <code>upload_sign:user:&lt;uuid&gt;</code> (100/hr)</li>
+    <li><strong>08</strong> → <code>post_create:user:&lt;uuid&gt;</code> (with new-account belt)</li>
+    <li><strong>09</strong> → <code>comment_create:user:&lt;uuid&gt;</code> (60/hr)</li>
+    <li><strong>10</strong> → <code>vote:user:&lt;uuid&gt;</code> (600/hr)</li>
+  </ul>
+</div>
+
+</div>
+
+<h2>Critical-path summary</h2>
+<div class="panel">
+  <p style="margin-bottom: 10px;"><strong>Hard dependencies</strong> (cannot reorder):</p>
+  <ul>
+    <li><code>01 → 02 → 03 → 04</code> — chassis before auth</li>
+    <li><code>04 → 06</code> — communities need signed-in users</li>
+    <li><code>06 → 08</code> — posts need a community to live in</li>
+    <li><code>07 → 08</code> (image embeds depend on the upload pipeline)</li>
+    <li><code>08 → 09</code> — comments need posts</li>
+    <li><code>08 → 10</code> (votes on posts), <code>09 → 10</code> (votes on comments)</li>
+  </ul>
+  <p style="margin: 14px 0 6px;"><strong>Soft dependencies</strong> (can shift):</p>
+  <ul>
+    <li><code>05 profiles</code> can slot anywhere after 04. I've placed it before 06 so community pages can link to real profiles.</li>
+    <li><code>07 storage</code> can land any time after 04. Placed before 08 so posts can use it directly.</li>
+  </ul>
+  <p style="margin: 14px 0 6px;"><strong>Total estimated Phase 1 wall time:</strong> 18 working days (with you in the loop reviewing &amp; merging each PR). Real-world ~3–4 weeks of evenings/weekends. Plus the polish backlog from <code>PRD.md</code> §"Polish backlog" — landed alongside the relevant section, not deferred to a separate cycle.</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Syntrix — Feed (v1)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============ design tokens ============ */
+  :root {
+    --paper: #f6f3ec;
+    --paper-warm: #efeadf;
+    --ink: #1c1815;
+    --ink-soft: #4a4239;
+    --ink-faint: #8a7f72;
+    --rule: #d9d0bd;
+    --rule-soft: #e8e1d4;
+    --surface: #ffffff;
+    --accent: #e8472b;          /* persimmon */
+    --accent-soft: #f4d4c9;
+    --good: #2f6e4a;
+    --bad: #b03b3b;
+
+    --c-homelab: #1e3a5f;
+    --c-halo:    #5d2424;
+    --c-sre:     #3a2347;
+    --c-proxmox: #354823;
+    --c-golang:  #0d4d57;
+    --c-sec:     #4a1e1e;
+
+    --display: "Fraunces", "Times New Roman", serif;
+    --body:    "Hanken Grotesk", system-ui, sans-serif;
+    --mono:    "JetBrains Mono", ui-monospace, monospace;
+
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 0 rgba(28,24,21,0.04), 0 10px 24px -16px rgba(28,24,21,0.18);
+    --shadow-hover: 0 1px 0 rgba(28,24,21,0.04), 0 22px 40px -22px rgba(28,24,21,0.32);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    min-height: 100vh;
+    /* paper grain — very subtle */
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(232, 71, 43, 0.025) 0, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(30, 58, 95, 0.025) 0, transparent 40%);
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    z-index: 100;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.11  0 0 0 0 0.10  0 0 0 0 0.08  0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+  }
+
+  ::selection { background: var(--accent); color: var(--paper); }
+
+  /* ============ layout ============ */
+  .app {
+    display: grid;
+    grid-template-columns: 248px 1fr;
+    min-height: 100vh;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* ============ sidebar ============ */
+  .sidebar {
+    border-right: 1px solid var(--rule-soft);
+    padding: 28px 18px 24px;
+    position: sticky; top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .wordmark {
+    font-family: var(--display);
+    font-weight: 800;
+    font-style: italic;
+    font-size: 30px;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    padding: 4px 8px 24px;
+    color: var(--ink);
+    font-variation-settings: "opsz" 60, "SOFT" 80;
+    display: inline-block;
+  }
+  .wordmark .dot {
+    color: var(--accent);
+    font-style: normal;
+  }
+  .nav-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 14px 10px 8px;
+  }
+  .nav { list-style: none; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: var(--ink-soft);
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--paper-warm); color: var(--ink); }
+  .nav-item.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .nav-item.active .icon { color: var(--paper); }
+  .nav-item .icon {
+    width: 18px; height: 18px;
+    color: var(--ink-faint);
+    flex-shrink: 0;
+  }
+  .nav-item:hover .icon { color: var(--ink); }
+  .nav-item .badge {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    background: var(--accent);
+    color: var(--paper);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .community-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--ink-soft);
+    transition: background 120ms ease;
+  }
+  .community-item:hover { background: var(--paper-warm); color: var(--ink); }
+  .community-dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .community-item .members {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+  }
+
+  /* ============ main ============ */
+  .main { padding: 24px 36px 80px; min-width: 0; }
+
+  .topbar {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 36px;
+  }
+  .search {
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 999px;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+  }
+  .search:focus-within {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 4px rgba(28,24,21,0.04);
+  }
+  .search input {
+    border: 0; outline: 0; background: transparent;
+    font-family: var(--body); font-size: 14px;
+    color: var(--ink);
+    width: 100%;
+  }
+  .search input::placeholder { color: var(--ink-faint); }
+  .search .kbd {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  .btn {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 120ms ease;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--ink); }
+  .btn.primary {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .btn.primary:hover { background: var(--accent); border-color: var(--accent); }
+  .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 999px;
+    border: 1px solid var(--rule-soft);
+    background: var(--surface);
+    display: grid; place-items: center;
+    cursor: pointer;
+  }
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #e8472b 0%, #c2410c 100%);
+    color: var(--paper);
+    display: grid; place-items: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  /* ============ page header ============ */
+  .page-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 22px;
+    align-items: end;
+    padding-bottom: 26px;
+    border-bottom: 1px solid var(--rule-soft);
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .page-header .glyph {
+    width: 76px; height: 76px;
+    border-radius: 18px;
+    background: var(--ink);
+    color: var(--paper);
+    display: grid; place-items: center;
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 800;
+    font-size: 40px;
+    line-height: 1;
+    font-variation-settings: "SOFT" 100;
+    position: relative;
+    box-shadow: 6px 6px 0 var(--accent-soft);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+  .page-header h1 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 48px;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    font-variation-settings: "opsz" 144, "SOFT" 0;
+  }
+  .page-header h1 em {
+    font-style: italic;
+    color: var(--accent);
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+  }
+  .page-header .subtitle {
+    margin-top: 8px;
+    color: var(--ink-soft);
+    font-size: 15px;
+    max-width: 50ch;
+  }
+  .header-actions { display: flex; gap: 10px; align-self: end; padding-bottom: 6px; }
+
+  /* ============ tabs ============ */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .tab {
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-faint);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 120ms ease, border-color 120ms ease;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+  .tab .count {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    margin-left: 4px;
+  }
+
+  /* ============ feed grid ============ */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform 200ms cubic-bezier(0.2,0.7,0.2,1), box-shadow 200ms ease, border-color 200ms ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    animation: rise 600ms cubic-bezier(0.2,0.7,0.2,1) forwards;
+  }
+  .card:nth-child(1) { animation-delay: 50ms; }
+  .card:nth-child(2) { animation-delay: 120ms; }
+  .card:nth-child(3) { animation-delay: 190ms; }
+  .card:nth-child(4) { animation-delay: 260ms; }
+  .card:nth-child(5) { animation-delay: 330ms; }
+  .card:nth-child(6) { animation-delay: 400ms; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--rule);
+  }
+  .card .art {
+    aspect-ratio: 16 / 9;
+    position: relative;
+    overflow: hidden;
+    background: var(--c-homelab);
+  }
+  .card .art svg { width: 100%; height: 100%; display: block; }
+  .card .art .corner {
+    position: absolute;
+    top: 12px; left: 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(246, 243, 236, 0.92);
+    background: rgba(0,0,0,0.32);
+    backdrop-filter: blur(10px);
+    padding: 4px 9px;
+    border-radius: 4px;
+  }
+  .card .art .pin {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: rgba(246, 243, 236, 0.92);
+    background: rgba(0,0,0,0.32);
+    backdrop-filter: blur(10px);
+    padding: 4px 9px;
+    border-radius: 4px;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .card .body { padding: 18px 18px 14px; flex: 1; display: flex; flex-direction: column; }
+  .card .title {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.2;
+    letter-spacing: -0.018em;
+    color: var(--ink);
+    font-variation-settings: "opsz" 100, "SOFT" 30;
+    margin-bottom: 14px;
+    flex: 1;
+  }
+  .card .author {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .card .author .a-av {
+    width: 26px; height: 26px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--paper-warm);
+    display: grid; place-items: center;
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--ink);
+  }
+  .card .author .a-name { font-weight: 600; color: var(--ink); }
+  .card .author .a-date { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+
+  .card .meta {
+    border-top: 1px solid var(--rule-soft);
+    padding: 12px 18px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .vote {
+    display: flex; align-items: center;
+    background: var(--paper-warm);
+    border-radius: 999px;
+    padding: 2px;
+  }
+  .vote button {
+    border: 0; background: transparent;
+    width: 26px; height: 26px;
+    border-radius: 999px;
+    display: grid; place-items: center;
+    cursor: pointer;
+    color: var(--ink-soft);
+    transition: all 120ms ease;
+  }
+  .vote button:hover { background: var(--surface); }
+  .vote button.up:hover { color: var(--good); }
+  .vote button.dn:hover { color: var(--bad); }
+  .vote .score {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 0 6px;
+    color: var(--ink);
+    min-width: 28px;
+    text-align: center;
+  }
+  .meta-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    transition: background 120ms ease;
+  }
+  .meta-chip:hover { background: var(--paper-warm); }
+  .meta-chip .n { font-family: var(--mono); font-size: 11px; font-weight: 500; }
+  .meta-chip svg { width: 14px; height: 14px; }
+
+  .meta .spacer { margin-left: auto; }
+
+  /* ============ scrollbars ============ */
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <span class="wordmark">Syntrix<span class="dot">.</span></span>
+
+    <div class="nav-label">For you</div>
+    <ul class="nav">
+      <li class="nav-item active">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 13l9-9 9 9M5 12v8h14v-8"/></svg>
+        <span>Feed</span>
+      </li>
+      <li class="nav-item">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg>
+        <span>Explore</span>
+      </li>
+      <li class="nav-item">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M14 19a2 2 0 1 1-4 0"/></svg>
+        <span>Notifications</span>
+        <span class="badge">12</span>
+      </li>
+      <li class="nav-item">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        <span>My profile</span>
+      </li>
+    </ul>
+
+    <div class="nav-label">Communities</div>
+    <ul class="nav">
+      <li class="community-item">
+        <span class="community-dot" style="background: var(--c-homelab)"></span>
+        <span>c/homelab</span>
+        <span class="members">48.2k</span>
+      </li>
+      <li class="community-item">
+        <span class="community-dot" style="background: var(--c-halo)"></span>
+        <span>c/halo</span>
+        <span class="members">31.6k</span>
+      </li>
+      <li class="community-item">
+        <span class="community-dot" style="background: var(--c-sre)"></span>
+        <span>c/sre</span>
+        <span class="members">22.8k</span>
+      </li>
+      <li class="community-item">
+        <span class="community-dot" style="background: var(--c-proxmox)"></span>
+        <span>c/proxmox</span>
+        <span class="members">14.0k</span>
+      </li>
+      <li class="community-item">
+        <span class="community-dot" style="background: var(--c-golang)"></span>
+        <span>c/golang</span>
+        <span class="members">39.1k</span>
+      </li>
+      <li class="community-item">
+        <span class="community-dot" style="background: var(--c-sec)"></span>
+        <span>c/security</span>
+        <span class="members">28.5k</span>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ink-faint);"><circle cx="11" cy="11" r="6"/><path d="m20 20-4-4"/></svg>
+        <input type="text" placeholder="Search communities, posts, people…" />
+        <span class="kbd">⌘ K</span>
+      </div>
+      <button class="btn primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        New post
+      </button>
+      <button class="icon-btn" aria-label="messages">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" stroke-width="1.8"><path d="M21 12a8.5 8.5 0 1 1-3.6-6.9L21 4l-1 4.4A8.5 8.5 0 0 1 21 12z"/></svg>
+      </button>
+      <div class="avatar" aria-label="profile">KC</div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="page-header">
+      <div class="glyph">S</div>
+      <div>
+        <div class="eyebrow">Phase 1 · Communities &amp; Posts</div>
+        <h1>Your <em>feed</em></h1>
+        <p class="subtitle">Hot across the communities you follow — gamers, IT admins, and devs, in the order the room finds interesting.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn">Customize</button>
+        <button class="btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+          Filter
+        </button>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active">Hot <span class="count">(247)</span></div>
+      <div class="tab">New</div>
+      <div class="tab">Top this week</div>
+      <div class="tab">Discussions</div>
+      <div class="tab">Following</div>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid">
+
+      <!-- CARD 1: c/homelab -->
+      <article class="card">
+        <div class="art" style="background: var(--c-homelab);">
+          <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="g1a" cx="22%" cy="35%" r="0.7"><stop offset="0%" stop-color="#5cd1ff" stop-opacity="0.95"/><stop offset="60%" stop-color="#1e3a5f" stop-opacity="0"/></radialGradient>
+              <radialGradient id="g1b" cx="78%" cy="78%" r="0.6"><stop offset="0%" stop-color="#0aa6c2" stop-opacity="0.8"/><stop offset="55%" stop-color="#1e3a5f" stop-opacity="0"/></radialGradient>
+              <filter id="grain1"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0"/></filter>
+            </defs>
+            <rect width="100%" height="100%" fill="#1e3a5f"/>
+            <rect width="100%" height="100%" fill="url(#g1a)"/>
+            <rect width="100%" height="100%" fill="url(#g1b)"/>
+            <rect width="100%" height="100%" filter="url(#grain1)" opacity="0.7" style="mix-blend-mode: overlay;"/>
+          </svg>
+          <span class="corner">c/homelab</span>
+          <span class="pin">★ pinned</span>
+        </div>
+        <div class="body">
+          <h3 class="title">Anyone running Proxmox + Ceph on consumer NVMe?</h3>
+          <div class="author">
+            <span class="a-av">G</span>
+            <span class="a-name">u/glados</span>
+            <span class="a-date">· 4h</span>
+          </div>
+        </div>
+        <div class="meta">
+          <div class="vote">
+            <button class="up" aria-label="upvote"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5l7 7H5z"/></svg></button>
+            <span class="score">247</span>
+            <button class="dn" aria-label="downvote"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19l7-7H5z"/></svg></button>
+          </div>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8 8 0 0 1-12.5 6.6L3 21l2-4.5A8 8 0 1 1 21 12z"/></svg><span class="n">38</span></button>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21V8a2 2 0 0 0-2-2h-3l-2-3-2 3H7a2 2 0 0 0-2 2v13l7-3z"/></svg></button>
+        </div>
+      </article>
+
+      <!-- CARD 2: c/halo -->
+      <article class="card">
+        <div class="art" style="background: var(--c-halo);">
+          <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="g2a" cx="68%" cy="40%" r="0.85"><stop offset="0%" stop-color="#ff9a3c" stop-opacity="0.9"/><stop offset="55%" stop-color="#5d2424" stop-opacity="0"/></radialGradient>
+              <linearGradient id="g2b" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#1a0707" stop-opacity="0.9"/><stop offset="60%" stop-color="#5d2424" stop-opacity="0"/></linearGradient>
+              <filter id="grain2"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0"/></filter>
+            </defs>
+            <rect width="100%" height="100%" fill="#5d2424"/>
+            <rect width="100%" height="100%" fill="url(#g2b)"/>
+            <rect width="100%" height="100%" fill="url(#g2a)"/>
+            <rect width="100%" height="100%" filter="url(#grain2)" opacity="0.7" style="mix-blend-mode: overlay;"/>
+          </svg>
+          <span class="corner">c/halo</span>
+        </div>
+        <div class="body">
+          <h3 class="title">Ranked sensitivity setup: my unhinged calibration guide</h3>
+          <div class="author">
+            <span class="a-av" style="background: #e9b1a4; color: #5d2424;">R</span>
+            <span class="a-name">u/recoil</span>
+            <span class="a-date">· 6h</span>
+          </div>
+        </div>
+        <div class="meta">
+          <div class="vote">
+            <button class="up"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5l7 7H5z"/></svg></button>
+            <span class="score">184</span>
+            <button class="dn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19l7-7H5z"/></svg></button>
+          </div>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8 8 0 0 1-12.5 6.6L3 21l2-4.5A8 8 0 1 1 21 12z"/></svg><span class="n">12</span></button>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21V8a2 2 0 0 0-2-2h-3l-2-3-2 3H7a2 2 0 0 0-2 2v13l7-3z"/></svg></button>
+        </div>
+      </article>
+
+      <!-- CARD 3: c/sre -->
+      <article class="card">
+        <div class="art" style="background: var(--c-sre);">
+          <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="g3a" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff4577" stop-opacity="0.85"/><stop offset="55%" stop-color="#3a2347" stop-opacity="0"/></linearGradient>
+              <radialGradient id="g3b" cx="30%" cy="80%" r="0.6"><stop offset="0%" stop-color="#a259ff" stop-opacity="0.7"/><stop offset="60%" stop-color="#3a2347" stop-opacity="0"/></radialGradient>
+              <filter id="grain3"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0"/></filter>
+            </defs>
+            <rect width="100%" height="100%" fill="#3a2347"/>
+            <rect width="100%" height="100%" fill="url(#g3a)"/>
+            <rect width="100%" height="100%" fill="url(#g3b)"/>
+            <rect width="100%" height="100%" filter="url(#grain3)" opacity="0.7" style="mix-blend-mode: overlay;"/>
+          </svg>
+          <span class="corner">c/sre</span>
+        </div>
+        <div class="body">
+          <h3 class="title">RFC: monorepo layout for a small platform team</h3>
+          <div class="author">
+            <span class="a-av" style="background: #d4b8e8; color: #3a2347;">D</span>
+            <span class="a-name">u/devops_dan</span>
+            <span class="a-date">· 9h</span>
+          </div>
+        </div>
+        <div class="meta">
+          <div class="vote">
+            <button class="up"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5l7 7H5z"/></svg></button>
+            <span class="score">91</span>
+            <button class="dn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19l7-7H5z"/></svg></button>
+          </div>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8 8 0 0 1-12.5 6.6L3 21l2-4.5A8 8 0 1 1 21 12z"/></svg><span class="n">24</span></button>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21V8a2 2 0 0 0-2-2h-3l-2-3-2 3H7a2 2 0 0 0-2 2v13l7-3z"/></svg></button>
+        </div>
+      </article>
+
+      <!-- CARD 4: c/proxmox -->
+      <article class="card">
+        <div class="art" style="background: var(--c-proxmox);">
+          <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="g4a" cx="50%" cy="55%" r="0.7"><stop offset="0%" stop-color="#c8e85c" stop-opacity="0.85"/><stop offset="65%" stop-color="#354823" stop-opacity="0"/></radialGradient>
+              <linearGradient id="g4b" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0a1505" stop-opacity="0.6"/><stop offset="100%" stop-color="#354823" stop-opacity="0"/></linearGradient>
+              <filter id="grain4"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0"/></filter>
+            </defs>
+            <rect width="100%" height="100%" fill="#354823"/>
+            <rect width="100%" height="100%" fill="url(#g4b)"/>
+            <rect width="100%" height="100%" fill="url(#g4a)"/>
+            <rect width="100%" height="100%" filter="url(#grain4)" opacity="0.7" style="mix-blend-mode: overlay;"/>
+          </svg>
+          <span class="corner">c/proxmox</span>
+        </div>
+        <div class="body">
+          <h3 class="title">My homelab finally stopped tripping the breaker — full build log</h3>
+          <div class="author">
+            <span class="a-av" style="background: #c4d28a; color: #354823;">R</span>
+            <span class="a-name">u/rackmount</span>
+            <span class="a-date">· 1d</span>
+          </div>
+        </div>
+        <div class="meta">
+          <div class="vote">
+            <button class="up"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5l7 7H5z"/></svg></button>
+            <span class="score">412</span>
+            <button class="dn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19l7-7H5z"/></svg></button>
+          </div>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8 8 0 0 1-12.5 6.6L3 21l2-4.5A8 8 0 1 1 21 12z"/></svg><span class="n">87</span></button>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21V8a2 2 0 0 0-2-2h-3l-2-3-2 3H7a2 2 0 0 0-2 2v13l7-3z"/></svg></button>
+        </div>
+      </article>
+
+      <!-- CARD 5: c/golang -->
+      <article class="card">
+        <div class="art" style="background: var(--c-golang);">
+          <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="g5a" cx="80%" cy="20%" r="0.8"><stop offset="0%" stop-color="#5edcf2" stop-opacity="0.95"/><stop offset="65%" stop-color="#0d4d57" stop-opacity="0"/></radialGradient>
+              <radialGradient id="g5b" cx="20%" cy="90%" r="0.7"><stop offset="0%" stop-color="#1ea3a3" stop-opacity="0.8"/><stop offset="65%" stop-color="#0d4d57" stop-opacity="0"/></radialGradient>
+              <filter id="grain5"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0"/></filter>
+            </defs>
+            <rect width="100%" height="100%" fill="#0d4d57"/>
+            <rect width="100%" height="100%" fill="url(#g5b)"/>
+            <rect width="100%" height="100%" fill="url(#g5a)"/>
+            <rect width="100%" height="100%" filter="url(#grain5)" opacity="0.7" style="mix-blend-mode: overlay;"/>
+          </svg>
+          <span class="corner">c/golang</span>
+        </div>
+        <div class="body">
+          <h3 class="title">A pragmatic guide to <em style="font-family: var(--mono); font-style: normal; font-size: 0.88em; padding: 0 2px;">errors.Join</em> in real codebases</h3>
+          <div class="author">
+            <span class="a-av" style="background: #a8e5e5; color: #0d4d57;">M</span>
+            <span class="a-name">u/mike_g</span>
+            <span class="a-date">· 1d</span>
+          </div>
+        </div>
+        <div class="meta">
+          <div class="vote">
+            <button class="up"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5l7 7H5z"/></svg></button>
+            <span class="score">156</span>
+            <button class="dn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19l7-7H5z"/></svg></button>
+          </div>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8 8 0 0 1-12.5 6.6L3 21l2-4.5A8 8 0 1 1 21 12z"/></svg><span class="n">31</span></button>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21V8a2 2 0 0 0-2-2h-3l-2-3-2 3H7a2 2 0 0 0-2 2v13l7-3z"/></svg></button>
+        </div>
+      </article>
+
+      <!-- CARD 6: c/security -->
+      <article class="card">
+        <div class="art" style="background: var(--c-sec);">
+          <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="g6a" cx="50%" cy="50%" r="0.9"><stop offset="0%" stop-color="#ff7847" stop-opacity="0.9"/><stop offset="60%" stop-color="#4a1e1e" stop-opacity="0"/></radialGradient>
+              <radialGradient id="g6b" cx="15%" cy="15%" r="0.5"><stop offset="0%" stop-color="#000" stop-opacity="0.6"/><stop offset="60%" stop-color="#4a1e1e" stop-opacity="0"/></radialGradient>
+              <filter id="grain6"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0"/></filter>
+            </defs>
+            <rect width="100%" height="100%" fill="#4a1e1e"/>
+            <rect width="100%" height="100%" fill="url(#g6b)"/>
+            <rect width="100%" height="100%" fill="url(#g6a)"/>
+            <rect width="100%" height="100%" filter="url(#grain6)" opacity="0.7" style="mix-blend-mode: overlay;"/>
+          </svg>
+          <span class="corner">c/security</span>
+        </div>
+        <div class="body">
+          <h3 class="title">Patched a 0-day in our own internal portal — postmortem inside</h3>
+          <div class="author">
+            <span class="a-av" style="background: #e3a89c; color: #4a1e1e;">A</span>
+            <span class="a-name">u/anon_blue</span>
+            <span class="a-date">· 2d</span>
+          </div>
+        </div>
+        <div class="meta">
+          <div class="vote">
+            <button class="up"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5l7 7H5z"/></svg></button>
+            <span class="score">628</span>
+            <button class="dn"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 19l7-7H5z"/></svg></button>
+          </div>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a8 8 0 0 1-12.5 6.6L3 21l2-4.5A8 8 0 1 1 21 12z"/></svg><span class="n">154</span></button>
+          <button class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21V8a2 2 0 0 0-2-2h-3l-2-3-2 3H7a2 2 0 0 0-2 2v13l7-3z"/></svg></button>
+        </div>
+      </article>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // simple interactions so it feels alive
+  document.querySelectorAll('.nav-item, .community-item, .tab').forEach(el => {
+    el.addEventListener('click', e => {
+      const sibs = el.parentNode.querySelectorAll('.active');
+      sibs.forEach(s => s.classList.remove('active'));
+      el.classList.add('active');
+    });
+  });
+  // vote buttons toggle
+  document.querySelectorAll('.vote').forEach(v => {
+    const up = v.querySelector('.up');
+    const dn = v.querySelector('.dn');
+    const score = v.querySelector('.score');
+    let val = parseInt(score.textContent, 10);
+    let state = 0; // -1 down, 0 neutral, 1 up
+    up.addEventListener('click', e => {
+      e.stopPropagation();
+      if (state === 1) { val -= 1; state = 0; up.style.color = ''; }
+      else if (state === -1) { val += 2; state = 1; up.style.color = 'var(--good)'; dn.style.color = ''; }
+      else { val += 1; state = 1; up.style.color = 'var(--good)'; }
+      score.textContent = val;
+    });
+    dn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (state === -1) { val += 1; state = 0; dn.style.color = ''; }
+      else if (state === 1) { val -= 2; state = -1; dn.style.color = 'var(--bad)'; up.style.color = ''; }
+      else { val -= 1; state = -1; dn.style.color = 'var(--bad)'; }
+      score.textContent = val;
+    });
+  });
+</script>
+
+</body>
+</html>

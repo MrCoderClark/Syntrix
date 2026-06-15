@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Syntrix — Permissions & Rate Limits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f6f3ec; --paper-warm: #efeadf;
+    --ink: #1c1815; --ink-soft: #4a4239; --ink-faint: #8a7f72;
+    --rule: #d9d0bd; --rule-soft: #e8e1d4;
+    --surface: #ffffff; --accent: #e8472b; --accent-soft: #f4d4c9;
+    --allow: #5b8c50; --deny-bg: #ebe6dc;
+    --display: "Fraunces", serif; --body: "Hanken Grotesk", system-ui, sans-serif; --mono: "JetBrains Mono", monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink); font-family: var(--body);
+    font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+    padding: 40px 48px; max-width: 1280px; margin: 0 auto;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; opacity: 0.3; z-index: 100;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.11 0 0 0 0 0.10 0 0 0 0 0.08 0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode: multiply;
+  }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; }
+  h1 { font-family: var(--display); font-weight: 600; font-size: 44px; line-height: 1; letter-spacing: -0.035em; font-variation-settings: "opsz" 144, "SOFT" 30; margin-bottom: 12px; }
+  h1 em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 144, "SOFT" 100; }
+  h2 { font-family: var(--display); font-weight: 500; font-size: 24px; letter-spacing: -0.02em; margin: 44px 0 12px; font-variation-settings: "opsz" 144, "SOFT" 30; }
+  p.lede { color: var(--ink-soft); font-size: 15.5px; max-width: 72ch; margin-bottom: 22px; }
+
+  .legend { display: flex; gap: 22px; flex-wrap: wrap; margin: 8px 0 18px; font-size: 13.5px; color: var(--ink-soft); align-items: center; }
+  .legend .k { display: inline-flex; align-items: center; gap: 8px; }
+  .legend .glyph { font-family: var(--display); font-size: 16px; line-height: 1; width: 18px; text-align: center; }
+  .legend .glyph.y { color: var(--allow); font-weight: 700; }
+  .legend .glyph.o { color: var(--accent); font-weight: 700; }
+  .legend .glyph.h { color: var(--ink-soft); }
+
+  .matrix-wrap { background: var(--surface); border: 1px solid var(--rule-soft); border-radius: 14px; overflow: hidden; margin-bottom: 24px; }
+  table.matrix { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.matrix thead th { background: var(--paper-warm); padding: 12px 14px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; text-align: center; border-bottom: 1px solid var(--rule-soft); }
+  table.matrix thead th.action { text-align: left; padding-left: 22px; width: 38%; }
+  table.matrix tbody td { padding: 11px 14px; border-bottom: 1px solid var(--rule-soft); text-align: center; }
+  table.matrix tbody td.action { text-align: left; padding-left: 22px; color: var(--ink); }
+  table.matrix tbody td.action .hint { display: block; color: var(--ink-faint); font-size: 12px; margin-top: 2px; }
+  table.matrix tbody tr:last-child td { border-bottom: 0; }
+  table.matrix tbody tr.group-head td { background: var(--paper); font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); padding: 14px 22px 8px; text-align: left; border-bottom: 1px solid var(--rule-soft); }
+  table.matrix .y { color: var(--allow); font-family: var(--display); font-weight: 700; font-size: 17px; line-height: 1; }
+  table.matrix .o { color: var(--accent); font-family: var(--display); font-weight: 700; font-size: 17px; line-height: 1; }
+  table.matrix .h { color: var(--ink-soft); font-family: var(--display); font-size: 17px; line-height: 1; }
+  table.matrix .x { color: var(--rule); font-size: 13px; line-height: 1; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 880px) { .grid2 { grid-template-columns: 1fr; } }
+  .panel { background: var(--surface); border: 1px solid var(--rule-soft); border-radius: 14px; padding: 22px 26px; margin-bottom: 16px; }
+  .panel h3 { font-family: var(--display); font-weight: 500; font-size: 18px; letter-spacing: -0.01em; margin-bottom: 10px; }
+  .panel ul, .panel ol { margin: 6px 0 0 22px; color: var(--ink-soft); font-size: 14px; line-height: 1.7; }
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--paper-warm); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+
+  table.rates { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.rates th, table.rates td { padding: 10px 12px; border-bottom: 1px solid var(--rule-soft); text-align: left; }
+  table.rates th { background: var(--paper-warm); font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; }
+  table.rates td.limit { font-family: var(--mono); color: var(--ink); font-size: 13px; }
+  table.rates td.algo { color: var(--ink-soft); font-size: 12px; }
+  table.rates tr:last-child td { border-bottom: 0; }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Design Section 4 / 5 — Permissions &amp; Rate Limits</div>
+<h1>Who can do <em>what</em></h1>
+<p class="lede">Five roles. One matrix. Plus a rate-limit policy on the spam-prone surfaces — implemented in Postgres (no Redis in Phase 1). Everything below is enforced at the FastAPI layer; the edge never makes a permission decision.</p>
+
+<div class="legend">
+  <span class="k"><span class="glyph y">●</span> allowed</span>
+  <span class="k"><span class="glyph o">◐</span> own only / conditional</span>
+  <span class="k"><span class="glyph h">○</span> read-only</span>
+  <span class="k"><span class="glyph x">·</span> denied</span>
+</div>
+
+<div class="matrix-wrap">
+<table class="matrix">
+  <thead>
+    <tr>
+      <th class="action">Action</th>
+      <th>Anon</th>
+      <th>Member</th>
+      <th>Mod</th>
+      <th>Owner</th>
+      <th>Admin</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr class="group-head"><td colspan="6">Browse</td></tr>
+    <tr>
+      <td class="action">View public community / posts / comments<span class="hint">SEO, share links — anonymous reads OK</span></td>
+      <td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td>
+    </tr>
+    <tr>
+      <td class="action">Search<span class="hint">Phase 1: minimal community/post filter only</span></td>
+      <td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td>
+    </tr>
+
+    <tr class="group-head"><td colspan="6">Community lifecycle</td></tr>
+    <tr><td class="action">Request a new community<span class="hint">Fills `community_requests`</span></td>
+      <td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+    <tr><td class="action">Create a community<span class="hint">Admin-curated in Phase 1</span></td>
+      <td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="y">●</span></td></tr>
+    <tr><td class="action">Rename / edit description / change color<span class="hint">Owner only</span></td>
+      <td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+    <tr><td class="action">Delete / archive a community<span class="hint">Admin only — sharp tool</span></td>
+      <td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="y">●</span></td></tr>
+    <tr><td class="action">Approve / reject a community request</td>
+      <td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="y">●</span></td></tr>
+
+    <tr class="group-head"><td colspan="6">Membership</td></tr>
+    <tr><td class="action">Join / leave a community</td>
+      <td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+    <tr><td class="action">Ban / unban a user from community</td>
+      <td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+    <tr><td class="action">Appoint / demote mods<span class="hint">Owner only</span></td>
+      <td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+
+    <tr class="group-head"><td colspan="6">Posts</td></tr>
+    <tr><td class="action">Create a post<span class="hint">Must be member, not banned</span></td>
+      <td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+    <tr><td class="action">Edit a post<span class="hint">Author only; preserved as edited_at</span></td>
+      <td><span class="x">·</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td></tr>
+    <tr><td class="action">Delete a post<span class="hint">Author only — sets deleted_at</span></td>
+      <td><span class="x">·</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td></tr>
+    <tr><td class="action">Pin a post in the community<span class="hint">One pinned at a time</span></td>
+      <td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+    <tr><td class="action">Remove a post (moderator)<span class="hint">Sets removed_at + removed_by; UI shows "[removed]"</span></td>
+      <td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+
+    <tr class="group-head"><td colspan="6">Comments</td></tr>
+    <tr><td class="action">Comment on a post</td>
+      <td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+    <tr><td class="action">Edit / delete own comment</td>
+      <td><span class="x">·</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td></tr>
+    <tr><td class="action">Remove a comment (moderator)</td>
+      <td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+
+    <tr class="group-head"><td colspan="6">Votes</td></tr>
+    <tr><td class="action">Vote on post / comment<span class="hint">Cannot vote on own content (anti-gaming)</span></td>
+      <td><span class="x">·</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td></tr>
+
+    <tr class="group-head"><td colspan="6">Profile</td></tr>
+    <tr><td class="action">View any profile</td>
+      <td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+    <tr><td class="action">Edit own profile (display name, bio, avatar)</td>
+      <td><span class="x">·</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td><td><span class="o">◐</span></td></tr>
+    <tr><td class="action">Suspend / unsuspend a user (platform-wide)</td>
+      <td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="x">·</span></td><td><span class="y">●</span></td></tr>
+
+    <tr class="group-head"><td colspan="6">Uploads</td></tr>
+    <tr><td class="action">Request signed upload URL<span class="hint">Rate-limited per user</span></td>
+      <td><span class="x">·</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td><td><span class="y">●</span></td></tr>
+
+  </tbody>
+</table>
+</div>
+
+<p class="lede" style="font-size: 13.5px; margin-bottom: 0;">
+  Read row: <strong>"Edit a post"</strong> shows <span class="o" style="font-weight:700;">◐</span> across Member→Admin — meaning the action is allowed <em>only on your own posts</em>. Mod / Owner / Admin do not have edit power over other users' posts (that would lie about authorship). They remove via the <strong>"Remove a post (moderator)"</strong> row instead — separate column, separate audit trail.
+</p>
+
+<h2>Rate limits — Phase 1</h2>
+
+<div class="matrix-wrap">
+<table class="rates">
+  <thead>
+    <tr>
+      <th>Surface</th>
+      <th>Limit</th>
+      <th>Scope</th>
+      <th>Algorithm</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Create post</td><td class="limit">10 / hr · 50 / day</td><td>per user</td><td class="algo">token bucket — allows reasonable bursts</td></tr>
+    <tr><td>Create post — first 24 h of account life</td><td class="limit">3 / hr · 10 / day</td><td>per user</td><td class="algo">token bucket — anti-spam belt</td></tr>
+    <tr><td>Create comment</td><td class="limit">60 / hr · 300 / day</td><td>per user</td><td class="algo">token bucket</td></tr>
+    <tr><td>Vote (post or comment)</td><td class="limit">600 / hr</td><td>per user</td><td class="algo">token bucket — normal browsing tops out around 200</td></tr>
+    <tr><td>Request signed upload URL</td><td class="limit">100 / hr</td><td>per user</td><td class="algo">token bucket</td></tr>
+    <tr><td>Login attempt</td><td class="limit">10 / 15 min</td><td>per IP</td><td class="algo">sliding window</td></tr>
+    <tr><td>Login attempt</td><td class="limit">5 / 15 min</td><td>per account</td><td class="algo">sliding window</td></tr>
+    <tr><td>OAuth callback</td><td class="limit">30 / 15 min</td><td>per IP</td><td class="algo">sliding window</td></tr>
+    <tr><td>Community request</td><td class="limit">2 / day</td><td>per user</td><td class="algo">fixed window</td></tr>
+    <tr><td>Generic API (catch-all)</td><td class="limit">300 / min</td><td>per IP</td><td class="algo">leaky bucket — DDoS belt</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>Implementation notes</h2>
+<div class="grid2">
+
+<div class="panel">
+  <h3>Authz lives in <code>app/auth/perm.py</code></h3>
+  <ul>
+    <li><strong>One function per action</strong>: <code>can_create_post(user, community)</code>, <code>can_remove_post(user, post)</code>, etc. Easy to grep, easy to test.</li>
+    <li><strong>FastAPI dependency</strong>: <code>Depends(can("create_post", community_id))</code> raises <code>403</code> on deny.</li>
+    <li><strong>No "if user.is_admin"</strong> sprinkled through handlers. The permission function is the only place that knows.</li>
+    <li><strong>Membership + role + ban</strong> queried once, cached per-request — one round-trip max.</li>
+  </ul>
+</div>
+
+<div class="panel">
+  <h3>Rate limits live in Postgres (no Redis)</h3>
+  <ul>
+    <li>One table: <code>rate_limit_buckets(key, tokens, refilled_at)</code>. Key = <code>"post_create:user:&lt;uuid&gt;"</code>, <code>"login:ip:&lt;cidr&gt;"</code>, etc.</li>
+    <li><strong>Atomic refill + take</strong> in a single <code>UPDATE … RETURNING</code> with a <code>WHERE tokens &gt;= cost</code> guard. Returns 0 rows when the bucket is empty → 429.</li>
+    <li>Janitor job sweeps stale rows nightly.</li>
+    <li>Redis can come later if we ever outgrow this. Phase 1: <strong>no extra service</strong>.</li>
+  </ul>
+</div>
+
+<div class="panel">
+  <h3>403 vs 404 vs 429</h3>
+  <ul>
+    <li><strong>403 "forbidden"</strong> when the caller exists but isn't allowed (denied by <code>perm.py</code>).</li>
+    <li><strong>404 "not found"</strong> when the resource exists but the caller isn't allowed to <em>know</em> it exists (rare in Phase 1 — public communities don't hide).</li>
+    <li><strong>429 "too many requests"</strong> with a <code>Retry-After</code> header on rate limit. Body includes the next-bucket-refill timestamp.</li>
+  </ul>
+</div>
+
+<div class="panel">
+  <h3>Vote self-ban &amp; ban semantics</h3>
+  <ul>
+    <li>You cannot vote on your own post or comment. Returns 403 with code <code>self_vote</code>.</li>
+    <li>If a user is banned from a community, they keep read access but lose post / comment / vote rights. UI surfaces the ban explicitly ("you were banned from c/halo — reason: …").</li>
+    <li>Site-wide suspension (<code>users.is_suspended = true</code>) kills all write rights everywhere; reads still work (the user can see why they were suspended).</li>
+  </ul>
+</div>
+
+</div>
+
+<h2>What's deliberately NOT in this section</h2>
+<div class="panel">
+  <ul>
+    <li><strong>Report / flag</strong> flow — deferred to Phase 2. For now, mods discover bad content by reading it. Reports turn the discovery into a feed.</li>
+    <li><strong>Audit log UI</strong> — <code>mod_actions</code> rows are written, but no admin view in Phase 1. Query the table if you need to audit.</li>
+    <li><strong>Automod rules / regex bans / link blacklists</strong> — Phase 2 at the earliest.</li>
+    <li><strong>Captcha</strong> — not in Phase 1. Rate limits + OAuth gating (no email-password) eliminate most of the spam vectors that captchas defend against.</li>
+  </ul>
+</div>
+
+</body>
+</html>
