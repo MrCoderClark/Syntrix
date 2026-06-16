@@ -29,7 +29,7 @@ Track build progress through Syntrix. Update this file as sections complete
 
 | # | Status | Branch | Ships |
 |---|---|---|---|
-| 01 | `[ ]` | `feat/scaffold` | Monorepo + `make dev` + pre-commit |
+| 01 | `[-]` | `feat/scaffold` | Monorepo + `make dev` + pre-commit |
 | 02 | `[ ]` | `feat/db` | `syntrix` schema, Alembic, extensions |
 | 03 | `[ ]` | `feat/design-system` | Fonts, tokens, shell primitives |
 | 04 | `[ ]` | `feat/auth` | OAuth, cookies, middleware, rate-limit table |

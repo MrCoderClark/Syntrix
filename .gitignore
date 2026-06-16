@@ -1,14 +1,26 @@
 .superpowers/
-.venv/
-venv/
+
+# Python
+backend/.venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+frontend/.next/
+frontend/out/
+
+# Env
 .env
 .env.local
-node_modules/
-dist/
-build/
-.DS_Store
+
+# Editor / OS
 .idea/
 .vscode/
+*.swp
+.DS_Store
 *.log
+dist/
+build/
