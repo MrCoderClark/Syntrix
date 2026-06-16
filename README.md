@@ -1,36 +1,43 @@
 # Syntrix
 
-A community web app for gamers, IT admins, and developers. One identity, three
-shapes of conversation: topic-scoped posts, structured Q&A, and live chat.
+A community web app for gamers, IT admins, and developers — Reddit + Stack
+Overflow + Discord under one identity.
 
-This repo is built collaboratively with Claude Code. The model writes the
-code; the human directs, reviews, and lands every change. See
-[`CLAUDE.md`](./CLAUDE.md) for the working conventions and the strict
-branch-per-section workflow.
+See `PRD.md` for the spec, `CLAUDE.md` for working conventions, and
+`PROGRESS.md` for status.
 
-## Stack
+## Quick start
 
-| Layer | Tech |
-|-------|------|
-| Backend | Python + FastAPI |
-| Database | PostgreSQL |
-| Frontend | TBD — chosen with visual identity as a first-class requirement |
+**Prerequisites:**
+- Python 3.12, Node 22, GNU Make
+- `uv` (`pipx install uv`) and `pre-commit` (`pipx install pre-commit`)
+- A running local Supabase stack (Postgres + Storage via Docker)
 
-## Docs
+**One-time setup:**
 
-- [`PRD.md`](./PRD.md) — what we're building, scope by phase, success criteria
-- [`CLAUDE.md`](./CLAUDE.md) — Claude's working context: stack, rules, planning,
-  branch workflow
-- [`PROGRESS.md`](./PROGRESS.md) — section-by-section build progress
-- [`.agent/plans/`](./.agent/plans/) — sequential implementation plans
+```bash
+cp .env.example .env
+# Edit .env if needed (defaults work for local Supabase).
+cd backend && uv sync && cd ..
+cd frontend && npm install && cd ..
+make precommit-install
+```
 
-## Phases
+**Day-to-day:**
 
-1. **Foundation + Communities & Posts** *(in design)*
-2. **Q&A Layer** *(deferred)*
-3. **Real-time Chat** *(deferred)*
+```bash
+make dev      # start backend (:8001) + frontend (:3000) in foreground
+make test     # backend tests
+make lint     # ruff + eslint + prettier check
+make fmt      # auto-format everything
+```
 
-## Getting Started (later)
+- Backend: http://127.0.0.1:8001 — FastAPI, hot-reload on file changes
+- Frontend: http://127.0.0.1:3000 — Next.js, hot-reload on file changes
 
-A real getting-started section will land here once the stack is locked in and
-the dev loop is reproducible.
+## Layout
+
+- `backend/` — Python + FastAPI ("the brain")
+- `frontend/` — Next.js + React + TypeScript
+- `docs/superpowers/` — design artifacts (mockups, references)
+- `.agent/plans/` — per-section implementation plans
