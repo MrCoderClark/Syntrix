@@ -1,0 +1,69 @@
+.header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 22px;
+  align-items: end;
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 32px;
+}
+
+.glyph {
+  width: 76px;
+  height: 76px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: var(--paper);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display-family);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1;
+  font-variation-settings: "SOFT" 100;
+  box-shadow: 6px 6px 0 var(--accent-soft);
+}
+
+.eyebrow {
+  font-family: var(--font-mono-family);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+
+.title {
+  font-family: var(--font-display-family);
+  font-weight: 600;
+  font-size: 48px;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 0;
+}
+
+.titleAccent {
+  font-style: italic;
+  color: var(--accent);
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 100;
+}
+
+.subtitle {
+  margin-top: 8px;
+  color: var(--ink-soft);
+  font-size: 15px;
+  max-width: 50ch;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-self: end;
+  padding-bottom: 6px;
+}

@@ -1,0 +1,37 @@
+.tabStrip {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.tab {
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-faint);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition:
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.count {
+  font-family: var(--font-mono-family);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-left: 4px;
+}

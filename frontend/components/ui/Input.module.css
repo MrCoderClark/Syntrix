@@ -1,0 +1,36 @@
+.wrap {
+  background: var(--surface);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+}
+
+.wrap:focus-within {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 4px rgba(28, 24, 21, 0.04);
+}
+
+.input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: var(--font-body-family);
+  font-size: 14px;
+  color: var(--ink);
+  width: 100%;
+}
+
+.input::placeholder {
+  color: var(--ink-faint);
+}
+
+.icon {
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
