@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import secrets
+import time
 import uuid
+from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.auth.jwt import create_access_token, decode_access_token, hash_refresh_token
 from app.auth.oauth import fetch_user_info, oauth
@@ -16,6 +22,27 @@ from app.db.session import get_session
 from app.models import OAuthIdentity, RefreshToken, User
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+STATE_MAX_AGE = 600
+
+
+def _create_oauth_state(secret: str) -> str:
+    payload = json.dumps({"t": int(time.time()), "n": secrets.token_hex(16)})
+    encoded = urlsafe_b64encode(payload.encode()).decode()
+    sig = hmac.new(secret.encode(), encoded.encode(), hashlib.sha256).hexdigest()[:16]
+    return f"{encoded}.{sig}"
+
+
+def _verify_oauth_state(secret: str, state: str) -> bool:
+    try:
+        encoded, sig = state.rsplit(".", 1)
+        expected = hmac.new(secret.encode(), encoded.encode(), hashlib.sha256).hexdigest()[:16]
+        if not hmac.compare_digest(sig, expected):
+            return False
+        data = json.loads(urlsafe_b64decode(encoded))
+        return (time.time() - data["t"]) < STATE_MAX_AGE
+    except Exception:
+        return False
 
 
 def _generate_handle(name: str) -> str:
@@ -60,8 +87,14 @@ async def login(provider: str, request: Request):
     if provider not in allowed:
         raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
     client = oauth.create_client(provider)
+    if client is None:
+        raise HTTPException(
+            status_code=501,
+            detail=f"{provider} OAuth is not configured. Set {provider.upper()}_CLIENT_ID in .env.",
+        )
+    state = _create_oauth_state(settings.jwt_secret_key)
     redirect_uri = f"{settings.oauth_redirect_base_url}/api/auth/callback/{provider}"
-    return await client.authorize_redirect(request, redirect_uri)
+    return await client.authorize_redirect(request, redirect_uri, state=state)
 
 
 @router.get("/callback/{provider}")
@@ -75,6 +108,11 @@ async def callback(
     if provider not in allowed:
         raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
 
+    # Verify HMAC-signed state (no session cookie needed)
+    state = request.query_params.get("state", "")
+    if not _verify_oauth_state(settings.jwt_secret_key, state):
+        raise HTTPException(status_code=400, detail="Invalid or expired OAuth state")
+
     client_ip = request.client.host if request.client else "unknown"
     conn = await session.connection()
     allowed_rl = await check_rate_limit(
@@ -83,13 +121,25 @@ async def callback(
     if not allowed_rl:
         raise HTTPException(status_code=429, detail="Too many login attempts")
 
+    # Inject state into session so authlib's internal check passes
+    redirect_uri = f"{settings.oauth_redirect_base_url}/api/auth/callback/{provider}"
+    state_key = f"_state_{provider}_{state}"
+    request.session[state_key] = {
+        "data": {"redirect_uri": redirect_uri},
+        "exp": time.time() + STATE_MAX_AGE,
+    }
+
     client = oauth.create_client(provider)
     token = await client.authorize_access_token(request)
     info = await fetch_user_info(provider, token)
 
-    stmt = select(OAuthIdentity).where(
-        OAuthIdentity.provider == provider,
-        OAuthIdentity.provider_sub == info["sub"],
+    stmt = (
+        select(OAuthIdentity)
+        .options(selectinload(OAuthIdentity.user))
+        .where(
+            OAuthIdentity.provider == provider,
+            OAuthIdentity.provider_sub == info["sub"],
+        )
     )
     result = await session.execute(stmt)
     oi = result.scalar_one_or_none()
