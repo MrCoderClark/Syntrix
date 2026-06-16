@@ -1,0 +1,121 @@
+.sidebar {
+  border-right: 1px solid var(--rule-soft);
+  padding: 28px 18px 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.wordmarkWrap {
+  padding-bottom: 24px;
+}
+
+.navLabel {
+  font-family: var(--font-mono-family);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 14px 10px 8px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.navItem:hover {
+  background: var(--paper-warm);
+  color: var(--ink);
+}
+
+.active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.navItem .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+
+.navItem:hover .icon {
+  color: var(--ink);
+}
+
+.active .icon {
+  color: var(--paper);
+}
+
+.badge {
+  margin-left: auto;
+  font-family: var(--font-mono-family);
+  font-size: 10px;
+  background: var(--accent);
+  color: var(--paper);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+}
+
+.communityItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--ink-soft);
+  transition: background var(--duration-fast) ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.communityItem:hover {
+  background: var(--paper-warm);
+  color: var(--ink);
+}
+
+.communityDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.members {
+  margin-left: auto;
+  font-family: var(--font-mono-family);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border-radius: 3px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}

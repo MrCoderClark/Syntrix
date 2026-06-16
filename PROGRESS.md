@@ -23,7 +23,7 @@ Track build progress through Syntrix. Update this file as sections complete
 |---|---|---|---|
 | 01 | `[x]` | `feat/scaffold` | Monorepo + `make dev` + pre-commit |
 | 02 | `[-]` | `feat/db` | `syntrix` schema, Alembic, extensions |
-| 03 | `[ ]` | `feat/design-system` | Fonts, tokens, shell primitives |
+| 03 | `[-]` | `feat/design-system` | Fonts, tokens, shell primitives |
 | 04 | `[ ]` | `feat/auth` | OAuth, cookies, middleware, rate-limit table |
 | 05 | `[ ]` | `feat/profiles` | `/u/<handle>`, profile edit (no avatar yet) |
 | 06 | `[ ]` | `feat/communities` | List, landing, join/leave, request + admin approval |

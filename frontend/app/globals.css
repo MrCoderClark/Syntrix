@@ -1,0 +1,139 @@
+:root {
+  /* ---- palette ---- */
+  --paper: #f6f3ec;
+  --paper-warm: #efeadf;
+  --ink: #1c1815;
+  --ink-soft: #4a4239;
+  --ink-faint: #8a7f72;
+  --rule: #d9d0bd;
+  --rule-soft: #e8e1d4;
+  --surface: #ffffff;
+  --accent: #e8472b;
+  --accent-soft: #f4d4c9;
+  --good: #2f6e4a;
+  --bad: #b03b3b;
+
+  /* ---- community colors ---- */
+  --c-homelab: #1e3a5f;
+  --c-halo: #5d2424;
+  --c-sre: #3a2347;
+  --c-proxmox: #354823;
+  --c-golang: #0d4d57;
+  --c-sec: #4a1e1e;
+
+  /* ---- typography ---- */
+  --font-display-family: var(--font-display), "Times New Roman", serif;
+  --font-body-family: var(--font-body), system-ui, sans-serif;
+  --font-mono-family: var(--font-mono), ui-monospace, monospace;
+
+  /* ---- radii ---- */
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-xs: 4px;
+  --radius-pill: 999px;
+
+  /* ---- shadows ---- */
+  --shadow:
+    0 1px 0 rgba(28, 24, 21, 0.04), 0 10px 24px -16px rgba(28, 24, 21, 0.18);
+  --shadow-hover:
+    0 1px 0 rgba(28, 24, 21, 0.04), 0 22px 40px -22px rgba(28, 24, 21, 0.32);
+
+  /* ---- motion ---- */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+
+  /* ---- layout ---- */
+  --sidebar-width: 248px;
+  --topbar-height: auto;
+  --content-max: 1440px;
+}
+
+/* ---- reset ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body-family);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(
+      circle at 20% 10%,
+      rgba(232, 71, 43, 0.025) 0,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(30, 58, 95, 0.025) 0,
+      transparent 40%
+    );
+}
+
+/* paper grain overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  z-index: 100;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.11  0 0 0 0 0.10  0 0 0 0 0.08  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  mix-blend-mode: multiply;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+/* ---- scrollbar ---- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---- utility ---- */
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ---- animation keyframes ---- */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
