@@ -1,0 +1,19 @@
+.wordmark {
+  font-family: var(--font-display-family);
+  font-weight: 800;
+  font-style: italic;
+  font-size: 30px;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  color: var(--ink);
+  font-variation-settings:
+    "opsz" 60,
+    "SOFT" 80;
+  display: inline-block;
+  padding: 4px 8px;
+}
+
+.dot {
+  color: var(--accent);
+  font-style: normal;
+}
