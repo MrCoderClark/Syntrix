@@ -1,4 +1,3 @@
-from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from app.config import get_settings
@@ -12,16 +11,8 @@ def _build_async_engine() -> AsyncEngine:
         pool_pre_ping=True,
         pool_size=10,
         max_overflow=5,
+        connect_args={"options": "-c search_path=syntrix,public"},
     )
-
-    @event.listens_for(engine.sync_engine, "connect")
-    def _set_search_path(dbapi_conn, _conn_record):
-        cursor = dbapi_conn.cursor()
-        try:
-            cursor.execute("SET search_path TO syntrix, public")
-        finally:
-            cursor.close()
-
     return engine
 
 
