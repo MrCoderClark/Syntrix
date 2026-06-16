@@ -41,6 +41,26 @@ make db-migrate
 > pooler does not persist session-level DDL. Reads and DML go through the
 > pooler normally (port 6543).
 
+**Authentication setup:**
+
+Syntrix uses OAuth-only authentication (no passwords). Register OAuth apps
+with at least one provider:
+
+- **GitHub:** https://github.com/settings/developers → New OAuth App
+  - Callback URL: `http://127.0.0.1:8001/api/auth/callback/github`
+- **Google:** https://console.cloud.google.com → Credentials → OAuth 2.0
+  - Callback URL: `http://127.0.0.1:8001/api/auth/callback/google`
+- **Discord:** https://discord.com/developers → New Application → OAuth2
+  - Callback URL: `http://127.0.0.1:8001/api/auth/callback/discord`
+
+Add the credentials to your `.env`:
+
+```bash
+JWT_SECRET_KEY=$(openssl rand -hex 32)
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
+```
+
 **Day-to-day:**
 
 ```bash
@@ -58,6 +78,14 @@ make db-history   # show migration history
 ## Layout
 
 - `backend/` — Python + FastAPI ("the brain")
+  - `app/` — application code (config, db, auth, routes)
+  - `alembic/` — database migrations (all within `syntrix` schema)
+  - `db/` — bootstrap/teardown SQL scripts
 - `frontend/` — Next.js + React + TypeScript
+  - `app/` — pages and layouts (App Router, `(app)` and `(auth)` route groups)
+  - `components/shell/` — Shell, Sidebar, Topbar
+  - `components/ui/` — Button, Avatar, Card, Tab, Input, PageHeader, VoteWidget, etc.
+  - `components/` — Wordmark, icons
+  - `lib/` — fonts, shared utilities
 - `docs/superpowers/` — design artifacts (mockups, references)
 - `.agent/plans/` — per-section implementation plans
