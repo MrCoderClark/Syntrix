@@ -1,0 +1,134 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) ease,
+    border-color var(--duration-base) ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  animation: rise 600ms var(--ease-out) forwards;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--rule);
+}
+
+.art {
+  aspect-ratio: 16 / 9;
+  position: relative;
+  overflow: hidden;
+}
+
+.corner {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-family: var(--font-mono-family);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(246, 243, 236, 0.92);
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(10px);
+  padding: 4px 9px;
+  border-radius: var(--radius-xs);
+}
+
+.pin {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--font-mono-family);
+  font-size: 10px;
+  color: rgba(246, 243, 236, 0.92);
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(10px);
+  padding: 4px 9px;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.body {
+  padding: 18px 18px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-family: var(--font-display-family);
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+  font-variation-settings:
+    "opsz" 100,
+    "SOFT" 30;
+  margin-bottom: 14px;
+  flex: 1;
+}
+
+.author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.authorName {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.authorDate {
+  font-family: var(--font-mono-family);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.meta {
+  border-top: 1px solid var(--rule-soft);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: background var(--duration-fast) ease;
+}
+
+.metaChip:hover {
+  background: var(--paper-warm);
+}
+
+.chipCount {
+  font-family: var(--font-mono-family);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.spacer {
+  margin-left: auto;
+}

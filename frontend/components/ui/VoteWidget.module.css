@@ -1,0 +1,44 @@
+.vote {
+  display: flex;
+  align-items: center;
+  background: var(--paper-warm);
+  border-radius: var(--radius-pill);
+  padding: 2px;
+}
+
+.voteBtn {
+  border: 0;
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: all var(--duration-fast) ease;
+}
+
+.voteBtn:hover {
+  background: var(--surface);
+}
+
+.up:hover,
+.upActive {
+  color: var(--good);
+}
+
+.dn:hover,
+.dnActive {
+  color: var(--bad);
+}
+
+.score {
+  font-family: var(--font-mono-family);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 6px;
+  color: var(--ink);
+  min-width: 28px;
+  text-align: center;
+}
