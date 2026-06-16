@@ -7,7 +7,7 @@ repos:
       - id: check-yaml
       - id: check-json
       - id: check-added-large-files
-        args: ["--maxkb=512"]
+        args: ["--maxkb=2048"]
       - id: check-merge-conflict
       - id: mixed-line-ending
         args: ["--fix=lf"]

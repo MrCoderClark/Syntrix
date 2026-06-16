@@ -1,5 +1,7 @@
 # Syntrix
 
+![Syntrix](github-repo-image.png)
+
 A community web app for gamers, IT admins, and developers — Reddit + Stack
 Overflow + Discord under one identity.
 
