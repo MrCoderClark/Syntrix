@@ -1,0 +1,71 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.title {
+  font-family: var(--font-display-family);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin-top: 24px;
+  margin-bottom: 8px;
+  font-variation-settings:
+    "opsz" 100,
+    "SOFT" 30;
+}
+
+.subtitle {
+  color: var(--ink-soft);
+  font-size: 15px;
+  margin-bottom: 32px;
+}
+
+.providers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.providerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  font-family: var(--font-body-family);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) ease,
+    background var(--duration-fast) ease;
+  text-decoration: none;
+  width: 100%;
+}
+
+.providerBtn:hover {
+  border-color: var(--ink);
+  background: var(--paper-warm);
+}
+
+.providerIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.footer {
+  margin-top: 24px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}

@@ -5,12 +5,12 @@ Track build progress through Syntrix. Update this file as sections complete
 
 ## Current state — read this first
 
-> **Phase 1 implementation is underway.** Section 01 (scaffold) is merged.
-> Section 02 (database foundation) is on branch `feat/db`.
+> **Phase 1 implementation is underway.** Sections 01 (scaffold),
+> 02 (database), and 03 (design system) are merged.
 >
-> **Current branch:** `feat/db`
-> **Next action:** finish section 02, hand off for review/merge, then
-> section 03 (`feat/design-system`).
+> **Current branch:** `main`
+> **Next action:** section 04 (`feat/auth`) — OAuth, cookies, middleware,
+> rate-limit table.
 
 ## Convention
 - `[ ]` = Not started
@@ -22,9 +22,9 @@ Track build progress through Syntrix. Update this file as sections complete
 | # | Status | Branch | Ships |
 |---|---|---|---|
 | 01 | `[x]` | `feat/scaffold` | Monorepo + `make dev` + pre-commit |
-| 02 | `[-]` | `feat/db` | `syntrix` schema, Alembic, extensions |
-| 03 | `[-]` | `feat/design-system` | Fonts, tokens, shell primitives |
-| 04 | `[ ]` | `feat/auth` | OAuth, cookies, middleware, rate-limit table |
+| 02 | `[x]` | `feat/db` | `syntrix` schema, Alembic, extensions |
+| 03 | `[x]` | `feat/design-system` | Fonts, tokens, shell primitives |
+| 04 | `[-]` | `feat/auth` | OAuth, cookies, middleware, rate-limit table |
 | 05 | `[ ]` | `feat/profiles` | `/u/<handle>`, profile edit (no avatar yet) |
 | 06 | `[ ]` | `feat/communities` | List, landing, join/leave, request + admin approval |
 | 07 | `[ ]` | `feat/storage` | `StorageBackend`, upload pipeline, avatars |

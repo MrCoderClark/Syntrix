@@ -7,19 +7,17 @@ polish step.
 
 ## Start here — current state
 
-Phase 1 brainstorming is **complete**. The full spec lives in `PRD.md`. All
-design artifacts (architecture, data model, key flows, permissions matrix,
-visual identity, 10-section breakdown) are archived under
-`docs/superpowers/mockups/` as HTML + retina PNG.
+Phase 1 **implementation is underway**. The full spec lives in `PRD.md`. All
+design artifacts are archived under `docs/superpowers/mockups/` as HTML +
+retina PNG. Implementation plans (1–10) live in `.agent/plans/`.
 
-**Next action** (when the user is ready): invoke the `writing-plans` skill
-to produce `.agent/plans/1.scaffold.md` … `.agent/plans/10.voting-feeds.md`.
+**Completed sections:** 01 (scaffold), 02 (database foundation),
+03 (design system).
+**Current section:** 04 (`feat/auth`) — OAuth, cookies, middleware,
+rate-limit table.
+**Next section:** 05 (`feat/profiles`).
 
-After plans are written and approved, implementation starts with branch
-`feat/scaffold`. From that point onward, the user owns every commit, push,
-and merge (see "Branching & merge workflow — STRICT" below).
-
-See `PROGRESS.md` for the section checklist and current status.
+See `PROGRESS.md` for the full section checklist and current status.
 
 ## Stack
 
@@ -58,7 +56,7 @@ touches another schema, that's a bug in the `include_object` filter, not an
 acceptable migration.
 - **Post editor:** TipTap (canonical storage = TipTap JSON); Shiki for code highlighting; markdown as paste/source-toggle alternate
 - **Object storage:** **Supabase Storage** — reused from the local Supabase Docker stack. Bucket `syntrix-uploads`. Wrapped behind a `StorageBackend` interface (methods: `sign_upload(key, mime, ttl)`, `finalize(key) -> (canonical_url, metadata)`, `move(src, dst)`, `delete(key)`). One implementation now (`SupabaseStorageBackend`); future implementations (`S3Backend`, `R2Backend`) can swap in without changing app code.
-- **Hosting (Phase 1):** all local via Docker Compose. Production deployment is a post-Phase 1 decision — code stays 12-factor so it can move anywhere.
+- **Hosting (Phase 1):** all local — backend via `uv run uvicorn` on port 8001, frontend via `npm run dev` on port 3000. Supabase stays on Docker. Production deployment is a post-Phase 1 decision — code stays 12-factor so it can move anywhere.
 - **Auth:** FastAPI owns identity. OAuth-only (GitHub, Google, Discord) via `authlib`. JWT in httpOnly + Secure + SameSite=Lax cookies. No password storage in Phase 1.
 - **Authz (defense in depth):** Next.js middleware verifies JWT signature + expiration only (no permission logic, no DB calls). FastAPI re-verifies the JWT and enforces every resource-level check (ownership, mod role, community membership, ban). Permission logic lives in one place: FastAPI.
 - **Image lifecycle:** browser uploads directly to Supabase Storage via short-lived signed URLs (5 min). Bytes never transit FastAPI. After upload, the browser pings `/uploads/finalize` — FastAPI validates content-type, strips EXIF, moves the object from `tmp/` to a permanent path, returns the canonical URL. On post submit, `post_attachments` links the object to the post. Images are deleted only on post-delete (cascade), on edit when removed from the TipTap doc, or as orphan-sweep of `tmp/` after 24h.
@@ -155,7 +153,7 @@ is the version log.
 
 ## Phases (current scope)
 
-1. **Phase 1 — Foundation + Communities & Posts** *(in design now)*
+1. **Phase 1 — Foundation + Communities & Posts** *(in progress — see PROGRESS.md)*
 2. **Phase 2 — Q&A Layer** *(deferred)*
 3. **Phase 3 — Real-time Chat** *(deferred)*
 

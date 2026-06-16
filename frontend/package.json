@@ -12,6 +12,7 @@
     "fmt:check": "prettier --check ."
   },
   "dependencies": {
+    "jose": "^6.2.3",
     "next": "^15.5.19",
     "react": "19.0.0",
     "react-dom": "19.0.0"

@@ -14,3 +14,8 @@ metadata_obj = MetaData(schema="syntrix", naming_convention=NAMING_CONVENTION)
 
 class Base(DeclarativeBase):
     metadata = metadata_obj
+
+
+def import_models() -> None:
+    """Side-effect import so Alembic autogenerate discovers all models."""
+    import app.models  # noqa: F401
