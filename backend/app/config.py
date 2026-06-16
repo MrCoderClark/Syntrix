@@ -13,24 +13,21 @@ class Settings(BaseSettings):
     )
 
     pg_host: str = Field(default="127.0.0.1")
-    pg_port: int = Field(default=6543)
+    pg_port: int = Field(default=5432)
     pg_db: str = Field(default="postgres")
-    syntrix_app_password: str
-    syntrix_admin_password: str
+    pg_user: str = Field(default="postgres")
+    pg_password: str = Field(default="postgres")
 
     @property
     def database_url(self) -> str:
         return (
-            f"postgresql+psycopg://syntrix_app:{self.syntrix_app_password}"
+            f"postgresql+psycopg://{self.pg_user}:{self.pg_password}"
             f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
         )
 
     @property
     def database_admin_url(self) -> str:
-        return (
-            f"postgresql+psycopg://syntrix_admin:{self.syntrix_admin_password}"
-            f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
-        )
+        return self.database_url
 
 
 @lru_cache
