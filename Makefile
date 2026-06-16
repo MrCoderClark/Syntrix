@@ -14,15 +14,15 @@ help: ## Show this help
 
 .PHONY: dev
 dev: ## Start backend + frontend (runs in foreground)
-	@echo "Starting backend on :8000 and frontend on :3000..."
+	@echo "Starting backend on :8001 and frontend on :3000..."
 	@trap 'kill 0' EXIT; \
-		(cd backend && uv run uvicorn app.main:app --reload --port 8000) & \
+		(cd backend && uv run uvicorn app.main:app --reload --port 8001) & \
 		(cd frontend && npm run dev) & \
 		wait
 
 .PHONY: backend-dev
 backend-dev: ## Start backend only
-	cd backend && uv run uvicorn app.main:app --reload --port 8000
+	cd backend && uv run uvicorn app.main:app --reload --port 8001
 
 .PHONY: frontend-dev
 frontend-dev: ## Start frontend only
