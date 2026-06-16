@@ -46,3 +46,37 @@ fmt: ## Format backend + frontend
 .PHONY: precommit-install
 precommit-install: ## Install git hooks
 	pre-commit install
+
+# ---- Database (runs DDL directly on the Postgres container) ----
+
+DB_CONTAINER ?= supabase-db
+PG_ADMIN_USER ?= postgres
+
+.PHONY: db-bootstrap
+db-bootstrap: ## Create syntrix schema, roles, and extensions
+	@echo "Bootstrapping syntrix schema on container $(DB_CONTAINER)..."
+	sed \
+		-e "s|:'syntrix_admin_password'|'$(SYNTRIX_ADMIN_PASSWORD)'|g" \
+		-e "s|:'syntrix_app_password'|'$(SYNTRIX_APP_PASSWORD)'|g" \
+		backend/db/bootstrap.sql \
+	| docker exec -i $(DB_CONTAINER) psql -U $(PG_ADMIN_USER) -d postgres -v ON_ERROR_STOP=1
+	@echo "Done."
+
+.PHONY: db-teardown
+db-teardown: ## DEV ONLY — drop syntrix schema and roles
+	@echo "WARNING: This will destroy ALL syntrix data!"
+	docker exec -i $(DB_CONTAINER) psql -U $(PG_ADMIN_USER) -d postgres -v ON_ERROR_STOP=1 < backend/db/teardown.sql
+	@echo "Done."
+
+.PHONY: db-migrate
+db-migrate: ## Run Alembic upgrade head (via docker exec)
+	docker exec -i $(DB_CONTAINER) psql -U $(PG_ADMIN_USER) -d postgres -v ON_ERROR_STOP=1 -c \
+		"$$(cd backend && uv run alembic upgrade head --sql)"
+
+.PHONY: db-current
+db-current: ## Show current Alembic revision
+	cd backend && uv run alembic current
+
+.PHONY: db-history
+db-history: ## Show Alembic migration history
+	cd backend && uv run alembic history -v
