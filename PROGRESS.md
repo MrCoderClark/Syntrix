@@ -5,20 +5,12 @@ Track build progress through Syntrix. Update this file as sections complete
 
 ## Current state — read this first
 
-> **Phase 1 brainstorming is COMPLETE.** All design decisions are locked.
-> The canonical spec is `PRD.md`; every visual decision is archived under
-> `docs/superpowers/mockups/` as both HTML and retina PNG.
+> **Phase 1 implementation is underway.** Section 01 (scaffold) is merged.
+> Section 02 (database foundation) is on branch `feat/db`.
 >
-> **Next action:** invoke the `writing-plans` skill to produce
-> `.agent/plans/1.scaffold.md` through `.agent/plans/10.voting-feeds.md`.
-> Each plan is the detailed step-by-step for one feature branch.
->
-> **After plans land and the user approves them:** implementation begins
-> with branch `feat/scaffold` (section 01). The user owns every commit,
-> push, and merge from that point on (see `CLAUDE.md` → "Branching & merge
-> workflow — STRICT").
->
-> No code has been written yet. No sections have started.
+> **Current branch:** `feat/db`
+> **Next action:** finish section 02, hand off for review/merge, then
+> section 03 (`feat/design-system`).
 
 ## Convention
 - `[ ]` = Not started
@@ -29,8 +21,8 @@ Track build progress through Syntrix. Update this file as sections complete
 
 | # | Status | Branch | Ships |
 |---|---|---|---|
-| 01 | `[-]` | `feat/scaffold` | Monorepo + `make dev` + pre-commit |
-| 02 | `[ ]` | `feat/db` | `syntrix` schema, Alembic, extensions |
+| 01 | `[x]` | `feat/scaffold` | Monorepo + `make dev` + pre-commit |
+| 02 | `[-]` | `feat/db` | `syntrix` schema, Alembic, extensions |
 | 03 | `[ ]` | `feat/design-system` | Fonts, tokens, shell primitives |
 | 04 | `[ ]` | `feat/auth` | OAuth, cookies, middleware, rate-limit table |
 | 05 | `[ ]` | `feat/profiles` | `/u/<handle>`, profile edit (no avatar yet) |
