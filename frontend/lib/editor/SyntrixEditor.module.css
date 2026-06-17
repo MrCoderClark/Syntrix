@@ -1,0 +1,152 @@
+.wrapper {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+  background: var(--paper);
+  flex-wrap: wrap;
+}
+
+.tbtn {
+  all: unset;
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-body-family);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.tbtn:hover {
+  background: var(--rule-soft);
+  color: var(--ink);
+}
+
+.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.sep {
+  width: 1px;
+  height: 20px;
+  background: var(--rule-soft);
+  margin: 0 4px;
+}
+
+.hidden {
+  display: none;
+}
+
+.content {
+  min-height: 200px;
+  padding: 12px 16px;
+  font-family: var(--font-body-family);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+/* ProseMirror overrides */
+.content :global(.ProseMirror) {
+  outline: none;
+  min-height: 180px;
+}
+
+.content :global(.ProseMirror) p {
+  margin-bottom: 0.5em;
+}
+
+.content :global(.ProseMirror) h1,
+.content :global(.ProseMirror) h2,
+.content :global(.ProseMirror) h3 {
+  font-family: var(--font-display-family);
+  font-weight: 700;
+  margin-top: 1em;
+  margin-bottom: 0.4em;
+}
+
+.content :global(.ProseMirror) h2 {
+  font-size: 1.4em;
+}
+
+.content :global(.ProseMirror) h3 {
+  font-size: 1.15em;
+}
+
+.content :global(.ProseMirror) blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+  color: var(--ink-soft);
+  margin: 0.5em 0;
+}
+
+.content :global(.ProseMirror) pre {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius-xs);
+  padding: 12px 16px;
+  font-family: var(--font-mono-family);
+  font-size: 13px;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.content :global(.ProseMirror) code {
+  font-family: var(--font-mono-family);
+  background: var(--paper-warm);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.content :global(.ProseMirror) pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
+.content :global(.ProseMirror) img {
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  margin: 0.5em 0;
+}
+
+.content :global(.ProseMirror) ul,
+.content :global(.ProseMirror) ol {
+  padding-left: 1.4em;
+  margin: 0.5em 0;
+}
+
+.content :global(.ProseMirror) a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.content :global(.ProseMirror) p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--ink-faint);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+.content :global(.ProseMirror) hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 1em 0;
+}

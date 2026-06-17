@@ -5,6 +5,8 @@ from app.auth.oauth import register_oauth_providers
 from app.auth.router import router as auth_router
 from app.communities.router import router as communities_router
 from app.config import get_settings
+from app.posts.og import router as og_router
+from app.posts.router import router as posts_router
 from app.profiles.router import router as profiles_router
 from app.storage.router import router as storage_router
 
@@ -18,6 +20,8 @@ register_oauth_providers()
 
 app.include_router(auth_router)
 app.include_router(communities_router)
+app.include_router(og_router)
+app.include_router(posts_router)
 app.include_router(profiles_router)
 app.include_router(storage_router)
 

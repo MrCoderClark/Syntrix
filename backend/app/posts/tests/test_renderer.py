@@ -1,0 +1,139 @@
+from app.posts.renderer import render_tiptap_json
+
+
+def test_paragraph():
+    doc = {
+        "type": "doc",
+        "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Hello world"}]}],
+    }
+    assert "<p>Hello world</p>" in render_tiptap_json(doc)
+
+
+def test_heading():
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "heading",
+                "attrs": {"level": 2},
+                "content": [{"type": "text", "text": "Title"}],
+            }
+        ],
+    }
+    assert "<h2>Title</h2>" in render_tiptap_json(doc)
+
+
+def test_bold_italic():
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [
+                    {"type": "text", "marks": [{"type": "bold"}], "text": "strong"},
+                    {"type": "text", "marks": [{"type": "italic"}], "text": "emphasis"},
+                ],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "<strong>strong</strong>" in html
+    assert "<em>emphasis</em>" in html
+
+
+def test_code_block():
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {"language": "python"},
+                "content": [{"type": "text", "text": "print('hi')"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "<pre>" in html
+    assert 'class="language-python"' in html
+    assert "print(" in html
+
+
+def test_image():
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "image",
+                "attrs": {"src": "https://example.com/img.jpg", "alt": "photo"},
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "<img " in html
+    assert 'src="https://example.com/img.jpg"' in html
+
+
+def test_xss_escape():
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "<script>alert(1)</script>"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "<script>" not in html
+    assert "&lt;script&gt;" in html
+
+
+def test_empty_doc():
+    doc = {"type": "doc", "content": []}
+    assert render_tiptap_json(doc) == ""
+
+
+def test_link_mark():
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "marks": [{"type": "link", "attrs": {"href": "https://example.com"}}],
+                        "text": "click",
+                    }
+                ],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert 'href="https://example.com"' in html
+    assert 'rel="noopener"' in html
+
+
+def test_list():
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "bulletList",
+                "content": [
+                    {
+                        "type": "listItem",
+                        "content": [
+                            {
+                                "type": "paragraph",
+                                "content": [{"type": "text", "text": "item"}],
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "<ul>" in html
+    assert "<li>" in html
