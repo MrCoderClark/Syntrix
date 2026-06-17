@@ -52,8 +52,8 @@ def _render_node(node: dict) -> str:
         return f"<li>{_render_nodes(content)}</li>"
 
     if t == "image":
-        src = escape(attrs.get("src", ""))
-        alt = escape(attrs.get("alt", ""))
+        src = escape(attrs.get("src") or "")
+        alt = escape(attrs.get("alt") or "")
         return f'<img src="{src}" alt="{alt}" />'
 
     if t == "hardBreak":
