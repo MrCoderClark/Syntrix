@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
+import { VoteWidget } from "@/components/VoteWidget";
 import { CommentSection } from "./CommentSection";
 import { PostActions } from "./PostActions";
 import styles from "./PostDetail.module.css";
@@ -107,7 +108,13 @@ export default async function PostDetailPage({
       )}
 
       <div className={styles.stats}>
-        <span>{post.score} points</span>
+        <VoteWidget
+          targetType="post"
+          targetId={post.id}
+          score={post.score}
+          userVote={0}
+          layout="horizontal"
+        />
         <span>·</span>
         <span>
           {post.comment_count}{" "}

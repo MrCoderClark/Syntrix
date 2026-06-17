@@ -5,13 +5,10 @@ import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
 import { FeedControls } from "@/components/FeedControls";
 import { VoteWidget } from "@/components/VoteWidget";
-import styles from "./Home.module.css";
+import styles from "./page.module.css";
 
 interface PostItem {
   id: string;
-  community_id: string;
-  community_slug: string | null;
-  community_name: string | null;
   title: string;
   author_handle: string | null;
   author_display_name: string | null;
@@ -26,6 +23,11 @@ interface PostItem {
 
 type SortMode = "hot" | "new" | "top";
 type Period = "today" | "week" | "month" | "all";
+
+interface Props {
+  communityId: string;
+  slug: string;
+}
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -42,7 +44,7 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, "").slice(0, 200);
 }
 
-export default function HomePage() {
+export function CommunityFeed({ communityId, slug }: Props) {
   const [sort, setSort] = useState<SortMode>("hot");
   const [period, setPeriod] = useState<Period>("all");
   const [posts, setPosts] = useState<PostItem[]>([]);
@@ -52,22 +54,22 @@ export default function HomePage() {
     setLoading(true);
     const params = new URLSearchParams({ sort });
     if (sort === "top" && period !== "all") params.set("period", period);
-    const res = await fetch(`/api/feed?${params.toString()}`);
+    const res = await fetch(
+      `/api/communities/${communityId}/feed?${params.toString()}`,
+    );
     if (res.ok) {
       const data = await res.json();
       setPosts(data.posts ?? []);
     }
     setLoading(false);
-  }, [sort, period]);
+  }, [communityId, sort, period]);
 
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
 
   return (
-    <div className={styles.page}>
-      <h1 className={styles.heading}>Your Feed</h1>
-
+    <>
       <FeedControls
         sort={sort}
         period={period}
@@ -78,12 +80,9 @@ export default function HomePage() {
       {loading ? (
         <p className={styles.placeholder}>Loading...</p>
       ) : posts.length === 0 ? (
-        <div className={styles.empty}>
-          <p>No posts in your feed yet.</p>
-          <Link href="/communities" className={styles.exploreLink}>
-            Join some communities to get started
-          </Link>
-        </div>
+        <p className={styles.placeholder}>
+          No posts yet in c/{slug}. Be the first to post!
+        </p>
       ) : (
         <div className={styles.feed}>
           {posts.map((post) => {
@@ -104,14 +103,12 @@ export default function HomePage() {
                   />
                 </div>
                 <Link
-                  href={`/c/${post.community_slug}/post/${post.id}`}
+                  href={`/c/${slug}/post/${post.id}`}
                   className={styles.postContent}
                 >
                   <div className={styles.postHeader}>
-                    {post.community_slug && (
-                      <span className={styles.communityTag}>
-                        c/{post.community_slug}
-                      </span>
+                    {post.is_pinned && (
+                      <span className={styles.pinBadge}>pinned</span>
                     )}
                     <h3 className={styles.postTitle}>{post.title}</h3>
                   </div>
@@ -142,6 +139,6 @@ export default function HomePage() {
           })}
         </div>
       )}
-    </div>
+    </>
   );
 }

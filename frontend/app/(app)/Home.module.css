@@ -1,69 +1,41 @@
-.headerActions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+.page {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 32px 24px;
 }
 
-.newPostBtn {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 16px;
-  background: var(--accent);
-  color: var(--paper);
-  font-family: var(--font-body-family);
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.newPostBtn:hover {
-  opacity: 0.9;
-}
-
-.meta {
-  display: flex;
-  gap: 32px;
-  margin-bottom: 32px;
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.statValue {
+.heading {
   font-family: var(--font-display-family);
-  font-weight: 600;
-  font-size: 22px;
-  line-height: 1;
+  font-size: 1.6rem;
+  font-weight: 700;
   color: var(--ink);
-}
-
-.statLabel {
-  font-family: var(--font-mono-family);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-
-.content {
-  padding: 8px 0 40px;
+  margin-bottom: 20px;
 }
 
 .placeholder {
   color: var(--ink-faint);
   font-size: 14px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.empty {
   text-align: center;
   padding: 40px 20px;
   border: 1px dashed var(--rule-soft);
   border-radius: var(--radius);
+  color: var(--ink-faint);
+  font-size: 14px;
 }
 
-/* Post feed */
+.exploreLink {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
 .feed {
   display: flex;
   flex-direction: column;
@@ -77,7 +49,6 @@
   background: var(--surface);
   border: 1px solid var(--rule-soft);
   border-radius: var(--radius-sm);
-  color: inherit;
   transition:
     border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out);
@@ -105,18 +76,14 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 4px;
+  flex-wrap: wrap;
 }
 
-.pinBadge {
-  font-size: 10px;
+.communityTag {
+  font-size: 11px;
   font-family: var(--font-mono-family);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--accent);
-  background: var(--accent-soft);
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
