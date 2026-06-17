@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { JSONContent } from "@tiptap/react";
 import { Button } from "@/components/ui/Button";
 import { SyntrixEditor } from "@/lib/editor/SyntrixEditor";
@@ -16,12 +16,12 @@ export default function SubmitPostPage() {
   const bodyRef = useRef<JSONContent>({ type: "doc", content: [] });
   const [communityId, setCommunityId] = useState<string | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     fetch(`/api/communities/${params.slug}`)
       .then((r) => r.json())
       .then((c) => setCommunityId(c.id))
       .catch(() => {});
-  });
+  }, [params.slug]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

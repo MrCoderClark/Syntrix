@@ -43,7 +43,7 @@ export function SyntrixEditor({
         }),
       });
       if (!signRes.ok) throw new Error("Failed to sign");
-      const { upload_url } = await signRes.json();
+      const { key, upload_url } = await signRes.json();
 
       const putRes = await fetch(upload_url, {
         method: "PUT",
@@ -52,15 +52,10 @@ export function SyntrixEditor({
       });
       if (!putRes.ok) throw new Error("Upload failed");
 
-      const key = new URL(upload_url).pathname
-        .split("/syntrix-uploads/")[1]
-        ?.split("?")[0];
-      if (!key) throw new Error("Bad upload URL");
-
       const finalRes = await fetch("/api/uploads/finalize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: `tmp/${key}` }),
+        body: JSON.stringify({ key }),
       });
       if (!finalRes.ok) throw new Error("Finalize failed");
       const { url } = await finalRes.json();
