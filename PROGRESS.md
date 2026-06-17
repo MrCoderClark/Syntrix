@@ -5,11 +5,11 @@ Track build progress through Syntrix. Update this file as sections complete
 
 ## Current state — read this first
 
-> **Phase 1 implementation is underway.** Sections 01–07 are merged.
+> **Phase 1 implementation is underway.** Sections 01–08 are merged.
 >
-> **Current branch:** `feat/posts`
-> **Next action:** section 08 (`feat/posts`) — TipTap, post CRUD, image embeds,
-> mod remove.
+> **Current branch:** `feat/comments`
+> **Next action:** hand-back section 09 (`feat/comments`) — threaded comments
+> via ltree, comment editor, reply UI.
 
 ## Convention
 - `[ ]` = Not started
@@ -27,8 +27,8 @@ Track build progress through Syntrix. Update this file as sections complete
 | 05 | `[x]` | `feat/profiles` | `/u/<handle>`, profile edit (no avatar yet) |
 | 06 | `[x]` | `feat/communities` | List, landing, join/leave, request + admin approval |
 | 07 | `[x]` | `feat/storage` | `StorageBackend`, upload pipeline, avatars |
-| 08 | `[-]` | `feat/posts` | TipTap, post CRUD, image embeds, mod remove |
-| 09 | `[ ]` | `feat/comments` | Threaded comments via `ltree`, mod remove |
+| 08 | `[x]` | `feat/posts` | TipTap, post CRUD, image embeds, mod remove |
+| 09 | `[-]` | `feat/comments` | Threaded comments via `ltree`, mod remove |
 | 10 | `[ ]` | `feat/voting-feeds` | Votes, triggers, Hot/New/Top feeds, home feed view |
 
 Detailed per-section plans live in `.agent/plans/<n>.<slug>.md` and are written

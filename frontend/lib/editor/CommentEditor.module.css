@@ -1,0 +1,111 @@
+.wrapper {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--rule-soft);
+  background: var(--paper);
+}
+
+.tbtn {
+  all: unset;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-body-family);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.tbtn:hover {
+  background: var(--rule-soft);
+  color: var(--ink);
+}
+
+.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.sep {
+  width: 1px;
+  height: 16px;
+  background: var(--rule-soft);
+  margin: 0 3px;
+}
+
+.submitBtn {
+  all: unset;
+  font-family: var(--font-body-family);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--paper);
+  background: var(--accent);
+  padding: 4px 12px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  margin-left: auto;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.submitBtn:hover {
+  opacity: 0.85;
+}
+
+.content {
+  min-height: 80px;
+  padding: 8px 12px;
+  font-family: var(--font-body-family);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.content :global(.ProseMirror) {
+  outline: none;
+  min-height: 60px;
+}
+
+.content :global(.ProseMirror) p {
+  margin-bottom: 0.35em;
+}
+
+.content :global(.ProseMirror) blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+  color: var(--ink-soft);
+  margin: 0.35em 0;
+}
+
+.content :global(.ProseMirror) code {
+  font-family: var(--font-mono-family);
+  background: var(--paper-warm);
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.content :global(.ProseMirror) a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.content :global(.ProseMirror) p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--ink-faint);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
