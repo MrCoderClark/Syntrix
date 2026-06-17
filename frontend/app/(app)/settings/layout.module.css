@@ -1,0 +1,35 @@
+.settings {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 40px;
+  max-width: 800px;
+}
+
+.settingsNav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navLink {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: background var(--duration-fast) ease;
+}
+
+.navLink:hover {
+  background: var(--paper-warm);
+}
+
+.activeLink {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.activeLink:hover {
+  background: var(--ink);
+}
