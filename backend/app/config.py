@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     discord_client_id: str = Field(default="")
     discord_client_secret: str = Field(default="")
 
+    # Supabase Storage
+    supabase_storage_url: str = Field(default="http://127.0.0.1:8000/storage/v1")
+    supabase_service_key: str = Field(default="")
+    storage_bucket: str = Field(default="syntrix-uploads")
+    storage_max_size_bytes: int = Field(default=8_388_608)
+
     # Base URL for OAuth callbacks
     oauth_redirect_base_url: str = Field(default="http://127.0.0.1:8001")
 

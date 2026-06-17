@@ -52,6 +52,8 @@ async def update_profile(
         user.bio = body.bio
     if body.audience_tag is not None:
         user.audience_tag = body.audience_tag
+    if body.avatar_url is not None:
+        user.avatar_url = body.avatar_url
 
     session.add(user)
     await session.flush()

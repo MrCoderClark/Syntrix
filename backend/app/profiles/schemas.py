@@ -25,6 +25,7 @@ class ProfileUpdateRequest(BaseModel):
     display_name: str | None = Field(default=None, min_length=1, max_length=100)
     bio: str | None = Field(default=None, max_length=500)
     audience_tag: str | None = None
+    avatar_url: str | None = None
 
     @field_validator("handle")
     @classmethod

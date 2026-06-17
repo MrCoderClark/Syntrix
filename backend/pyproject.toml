@@ -17,6 +17,7 @@ dependencies = [
     "pyjwt>=2.9",
     "passlib>=1.7",
     "itsdangerous>=2.2.0",
+    "pillow>=10.4",
 ]
 
 [dependency-groups]
