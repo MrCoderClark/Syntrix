@@ -6,6 +6,7 @@ from app.auth.router import router as auth_router
 from app.communities.router import router as communities_router
 from app.config import get_settings
 from app.profiles.router import router as profiles_router
+from app.storage.router import router as storage_router
 
 settings = get_settings()
 
@@ -18,6 +19,7 @@ register_oauth_providers()
 app.include_router(auth_router)
 app.include_router(communities_router)
 app.include_router(profiles_router)
+app.include_router(storage_router)
 
 
 @app.get("/health")

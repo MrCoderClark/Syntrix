@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { AvatarUpload } from "./AvatarUpload";
 import styles from "./page.module.css";
 
 interface Profile {
@@ -9,6 +10,7 @@ interface Profile {
   display_name: string;
   bio: string | null;
   audience_tag: string | null;
+  avatar_url: string | null;
 }
 
 export default function ProfileSettingsPage() {
@@ -50,6 +52,12 @@ export default function ProfileSettingsPage() {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
+      <AvatarUpload
+        currentUrl={profile.avatar_url}
+        displayName={profile.display_name}
+        onUploaded={(url) => setProfile({ ...profile, avatar_url: url })}
+      />
+
       <div className={styles.field}>
         <label className={styles.label}>Handle</label>
         <input

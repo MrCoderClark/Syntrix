@@ -10,6 +10,16 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ["http://127.0.0.1:8001"],
   poweredByHeader: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "8000",
+        pathname: "/storage/v1/**",
+      },
+    ],
+  },
   async rewrites() {
     return [
       {
