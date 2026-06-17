@@ -17,6 +17,7 @@ export function CommentSection({ postId }: Props) {
   const [loading, setLoading] = useState(true);
   const [rootJson, setRootJson] = useState<JSONContent | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
 
   const fetchComments = useCallback(async () => {
     const res = await fetch(`/api/posts/${postId}/comments`);
@@ -43,6 +44,7 @@ export function CommentSection({ postId }: Props) {
       });
       if (res.ok) {
         setRootJson(null);
+        setEditorKey((k) => k + 1);
         fetchComments();
       }
     } finally {
@@ -58,6 +60,7 @@ export function CommentSection({ postId }: Props) {
 
       <div className={styles.rootEditor}>
         <CommentEditor
+          key={editorKey}
           placeholder="Add a comment..."
           onChange={setRootJson}
           onSubmit={handleRootSubmit}
