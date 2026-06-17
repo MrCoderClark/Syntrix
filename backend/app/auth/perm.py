@@ -12,6 +12,16 @@ def can(action: str, **kwargs: Any):
         if action == "is_authenticated":
             return
 
+        if action == "create_community":
+            if user.role == "admin":
+                return
+            raise HTTPException(status_code=403, detail="Only admins can create communities")
+
+        if action == "approve_request":
+            if user.role == "admin":
+                return
+            raise HTTPException(status_code=403, detail="Only admins can approve requests")
+
         raise HTTPException(
             status_code=403,
             detail=f"Permission check '{action}' not implemented yet",
