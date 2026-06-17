@@ -107,6 +107,7 @@ async def create_post(
     )
     session.add(post)
     await session.flush()
+    await session.refresh(post)
 
     image_urls = _extract_image_urls(body.body_json)
     for url in image_urls:
@@ -160,8 +161,8 @@ async def update_post(
         post.body_json = body.body_json
         post.body_html = render_tiptap_json(body.body_json)
 
-    session.add(post)
     await session.flush()
+    await session.refresh(post)
 
     community = await session.get(Community, post.community_id)
     return _post_response(post, author=user, community=community)
@@ -203,8 +204,8 @@ async def remove_post(
     post.removed_at = datetime.now(UTC)
     post.removed_by = user.id
     post.removed_reason = body.reason
-    session.add(post)
     await session.flush()
+    await session.refresh(post)
 
     author = await session.get(User, post.author_id) if post.author_id else None
     community = await session.get(Community, post.community_id)
