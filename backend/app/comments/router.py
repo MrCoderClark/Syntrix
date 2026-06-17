@@ -140,6 +140,7 @@ async def list_comments(
         flat.append(data)
 
     tree = build_comment_tree(flat)
+    tree.sort(key=lambda c: c["created_at"], reverse=True)
 
     def _strip_path(nodes: list[dict]) -> list[dict]:
         for n in nodes:
