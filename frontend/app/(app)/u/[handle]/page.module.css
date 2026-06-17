@@ -1,0 +1,59 @@
+.profile {
+  max-width: 640px;
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.info {
+  flex: 1;
+}
+
+.displayName {
+  font-family: var(--font-display-family);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variation-settings:
+    "opsz" 100,
+    "SOFT" 30;
+}
+
+.handle {
+  font-family: var(--font-mono-family);
+  font-size: 14px;
+  color: var(--ink-faint);
+  margin-top: 4px;
+}
+
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono-family);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius-xs);
+  padding: 3px 8px;
+  margin-top: 8px;
+}
+
+.bio {
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-top: 16px;
+  max-width: 50ch;
+}
+
+.joined {
+  font-family: var(--font-mono-family);
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 12px;
+}
