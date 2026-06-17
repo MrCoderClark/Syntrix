@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
+import { CommentSection } from "./CommentSection";
 import { PostActions } from "./PostActions";
 import styles from "./PostDetail.module.css";
 
@@ -115,6 +116,8 @@ export default async function PostDetailPage({
       </div>
 
       <PostActions postId={post.id} slug={slug} />
+
+      <CommentSection postId={post.id} />
     </article>
   );
 }
