@@ -1,4 +1,3 @@
-import Image from "next/image";
 import styles from "./Avatar.module.css";
 
 interface AvatarProps {
@@ -9,8 +8,6 @@ interface AvatarProps {
   bgColor?: string;
   fgColor?: string;
 }
-
-const SIZE_PX = { sm: 26, md: 40, lg: 56 } as const;
 
 export function Avatar({
   src,
@@ -30,16 +27,7 @@ export function Avatar({
       }
       aria-label={alt}
     >
-      {src ? (
-        <Image
-          src={src}
-          alt={alt}
-          width={SIZE_PX[size]}
-          height={SIZE_PX[size]}
-        />
-      ) : (
-        fallback
-      )}
+      {src ? <img className={styles.img} src={src} alt={alt} /> : fallback}
     </div>
   );
 }
