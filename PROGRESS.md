@@ -5,11 +5,11 @@ Track build progress through Syntrix. Update this file as sections complete
 
 ## Current state — read this first
 
-> **Phase 1 implementation is underway.** Sections 01–06 are merged.
+> **Phase 1 implementation is underway.** Sections 01–07 are merged.
 >
-> **Current branch:** `feat/storage`
-> **Next action:** section 07 (`feat/storage`) — StorageBackend, upload pipeline,
-> avatars.
+> **Current branch:** `feat/posts`
+> **Next action:** section 08 (`feat/posts`) — TipTap, post CRUD, image embeds,
+> mod remove.
 
 ## Convention
 - `[ ]` = Not started
@@ -26,8 +26,8 @@ Track build progress through Syntrix. Update this file as sections complete
 | 04 | `[x]` | `feat/auth` | OAuth, cookies, middleware, rate-limit table |
 | 05 | `[x]` | `feat/profiles` | `/u/<handle>`, profile edit (no avatar yet) |
 | 06 | `[x]` | `feat/communities` | List, landing, join/leave, request + admin approval |
-| 07 | `[-]` | `feat/storage` | `StorageBackend`, upload pipeline, avatars |
-| 08 | `[ ]` | `feat/posts` | TipTap, post CRUD, image embeds, mod remove |
+| 07 | `[x]` | `feat/storage` | `StorageBackend`, upload pipeline, avatars |
+| 08 | `[-]` | `feat/posts` | TipTap, post CRUD, image embeds, mod remove |
 | 09 | `[ ]` | `feat/comments` | Threaded comments via `ltree`, mod remove |
 | 10 | `[ ]` | `feat/voting-feeds` | Votes, triggers, Hot/New/Top feeds, home feed view |
 
