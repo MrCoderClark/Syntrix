@@ -1,0 +1,67 @@
+.widget {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  user-select: none;
+}
+
+.vertical {
+  flex-direction: column;
+}
+
+.horizontal {
+  flex-direction: row;
+  gap: 4px;
+}
+
+.arrow {
+  all: unset;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.arrow:hover {
+  background: var(--paper-warm);
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  fill: var(--ink-faint);
+  transition: fill var(--duration-fast) var(--ease-out);
+}
+
+.arrow:hover .icon {
+  fill: var(--ink-soft);
+}
+
+.upActive .icon {
+  fill: var(--accent);
+}
+
+.downActive .icon {
+  fill: var(--bad);
+}
+
+.score {
+  font-family: var(--font-body-family);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  min-width: 20px;
+  text-align: center;
+  line-height: 1;
+}
+
+.positive {
+  color: var(--accent);
+}
+
+.negative {
+  color: var(--bad);
+}

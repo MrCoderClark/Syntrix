@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { JSONContent } from "@tiptap/react";
 import { Avatar } from "@/components/ui/Avatar";
+import { VoteWidget } from "@/components/VoteWidget";
 import { CommentEditor } from "@/lib/editor/CommentEditor";
 import styles from "./Comments.module.css";
 
@@ -111,14 +112,6 @@ export function CommentNode({ comment, postId, onReplyPosted }: Props) {
           </span>
           <span className={styles.dot}>·</span>
           <span className={styles.time}>{timeAgo(comment.created_at)}</span>
-          {comment.score !== 0 && (
-            <>
-              <span className={styles.dot}>·</span>
-              <span className={styles.score}>
-                {comment.score} {comment.score === 1 ? "point" : "points"}
-              </span>
-            </>
-          )}
         </div>
 
         <div
@@ -128,6 +121,13 @@ export function CommentNode({ comment, postId, onReplyPosted }: Props) {
 
         {!isDeleted && !isRemoved && (
           <div className={styles.commentActions}>
+            <VoteWidget
+              targetType="comment"
+              targetId={comment.id}
+              score={comment.score}
+              userVote={0}
+              layout="horizontal"
+            />
             <button
               type="button"
               className={styles.replyBtn}
