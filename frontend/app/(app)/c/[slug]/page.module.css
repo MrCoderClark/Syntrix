@@ -1,0 +1,40 @@
+.meta {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statValue {
+  font-family: var(--font-display-family);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.statLabel {
+  font-family: var(--font-mono-family);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.content {
+  padding: 40px 0;
+}
+
+.placeholder {
+  color: var(--ink-faint);
+  font-size: 14px;
+  text-align: center;
+  padding: 40px 20px;
+  border: 1px dashed var(--rule-soft);
+  border-radius: var(--radius);
+}

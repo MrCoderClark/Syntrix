@@ -12,10 +12,10 @@ design artifacts are archived under `docs/superpowers/mockups/` as HTML +
 retina PNG. Implementation plans (1–10) live in `.agent/plans/`.
 
 **Completed sections:** 01 (scaffold), 02 (database foundation),
-03 (design system).
-**Current section:** 04 (`feat/auth`) — OAuth, cookies, middleware,
-rate-limit table.
-**Next section:** 05 (`feat/profiles`).
+03 (design system), 04 (auth), 05 (profiles).
+**Current section:** 06 (`feat/communities`) — list, landing, join/leave,
+request + admin approval.
+**Next section:** 07 (`feat/storage`).
 
 See `PROGRESS.md` for the full section checklist and current status.
 
