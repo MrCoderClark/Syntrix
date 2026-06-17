@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { JSONContent } from "@tiptap/react";
 import { Button } from "@/components/ui/Button";
 import { SyntrixEditor } from "@/lib/editor/SyntrixEditor";
-import styles from "../../submit/Submit.module.css";
+import styles from "../../../submit/Submit.module.css";
 
 interface PostData {
   id: string;
