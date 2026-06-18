@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { VoteWidget } from "@/components/VoteWidget";
@@ -65,9 +66,9 @@ export default async function PostDetailPage({
   return (
     <article className={styles.page}>
       <div className={styles.breadcrumb}>
-        <a href={`/c/${slug}`} className={styles.crumbLink}>
+        <Link href={`/c/${slug}`} className={styles.crumbLink}>
           c/{slug}
-        </a>
+        </Link>
       </div>
 
       {post.removed_at && (
@@ -90,9 +91,12 @@ export default async function PostDetailPage({
         />
         <span className={styles.authorName}>
           {post.author_handle ? (
-            <a href={`/u/${post.author_handle}`} className={styles.authorLink}>
+            <Link
+              href={`/u/${post.author_handle}`}
+              className={styles.authorLink}
+            >
               {post.author_display_name ?? post.author_handle}
-            </a>
+            </Link>
           ) : (
             "[deleted]"
           )}

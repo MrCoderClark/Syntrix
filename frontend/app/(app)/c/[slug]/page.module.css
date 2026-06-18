@@ -160,3 +160,13 @@
   font-family: var(--font-mono-family);
   font-size: 11px;
 }
+
+@media (max-width: 640px) {
+  .meta {
+    gap: 20px;
+  }
+
+  .postCard {
+    padding: 10px 12px;
+  }
+}

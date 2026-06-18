@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
 import { FeedControls } from "@/components/FeedControls";
+import { PostCardSkeleton } from "@/components/PostCardSkeleton";
 import { VoteWidget } from "@/components/VoteWidget";
 import styles from "./page.module.css";
 
@@ -49,17 +50,25 @@ export function CommunityFeed({ communityId, slug }: Props) {
   const [period, setPeriod] = useState<Period>("all");
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams({ sort });
-    if (sort === "top" && period !== "all") params.set("period", period);
-    const res = await fetch(
-      `/api/communities/${communityId}/feed?${params.toString()}`,
-    );
-    if (res.ok) {
-      const data = await res.json();
-      setPosts(data.posts ?? []);
+    setError(false);
+    try {
+      const params = new URLSearchParams({ sort });
+      if (sort === "top" && period !== "all") params.set("period", period);
+      const res = await fetch(
+        `/api/communities/${communityId}/feed?${params.toString()}`,
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setPosts(data.posts ?? []);
+      } else {
+        setError(true);
+      }
+    } catch {
+      setError(true);
     }
     setLoading(false);
   }, [communityId, sort, period]);
@@ -78,7 +87,24 @@ export function CommunityFeed({ communityId, slug }: Props) {
       />
 
       {loading ? (
-        <p className={styles.placeholder}>Loading...</p>
+        <PostCardSkeleton />
+      ) : error ? (
+        <div className={styles.placeholder}>
+          Something went wrong loading posts.{" "}
+          <button
+            onClick={fetchPosts}
+            style={{
+              color: "var(--accent)",
+              textDecoration: "underline",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              font: "inherit",
+            }}
+          >
+            Try again
+          </button>
+        </div>
       ) : posts.length === 0 ? (
         <p className={styles.placeholder}>
           No posts yet in c/{slug}. Be the first to post!
