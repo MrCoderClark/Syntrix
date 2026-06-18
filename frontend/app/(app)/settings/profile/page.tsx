@@ -11,6 +11,9 @@ interface Profile {
   bio: string | null;
   audience_tag: string | null;
   avatar_url: string | null;
+  github_username: string | null;
+  discord_username: string | null;
+  website_url: string | null;
 }
 
 export default function ProfileSettingsPage() {
@@ -114,6 +117,56 @@ export default function ProfileSettingsPage() {
           <option value="it">IT Admin</option>
           <option value="dev">Developer</option>
         </select>
+      </div>
+
+      <div className={styles.divider} />
+
+      <h3 className={styles.sectionTitle}>Social links</h3>
+
+      <div className={styles.field}>
+        <label className={styles.label}>GitHub username</label>
+        <input
+          className={styles.textInput}
+          value={profile.github_username ?? ""}
+          onChange={(e) =>
+            setProfile({
+              ...profile,
+              github_username: e.target.value || null,
+            })
+          }
+          placeholder="octocat"
+          maxLength={39}
+        />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>Discord username</label>
+        <input
+          className={styles.textInput}
+          value={profile.discord_username ?? ""}
+          onChange={(e) =>
+            setProfile({
+              ...profile,
+              discord_username: e.target.value || null,
+            })
+          }
+          placeholder="username#1234"
+          maxLength={37}
+        />
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>Website</label>
+        <input
+          className={styles.textInput}
+          value={profile.website_url ?? ""}
+          onChange={(e) =>
+            setProfile({ ...profile, website_url: e.target.value || null })
+          }
+          placeholder="https://example.com"
+          maxLength={200}
+        />
+        <span className={styles.hint}>Must start with https://</span>
       </div>
 
       <div className={styles.actions}>

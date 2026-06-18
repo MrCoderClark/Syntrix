@@ -254,5 +254,10 @@ async def me(request: Request, session: AsyncSession = Depends(get_session)):
         "handle": user.handle,
         "display_name": user.display_name,
         "avatar_url": user.avatar_url,
+        "bio": user.bio,
+        "audience_tag": user.audience_tag,
         "role": user.role,
+        "github_username": user.github_username,
+        "discord_username": user.discord_username,
+        "website_url": user.website_url,
     }

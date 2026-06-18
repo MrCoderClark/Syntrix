@@ -1,0 +1,120 @@
+.tabs {
+  margin-top: 32px;
+}
+
+.tabStrip {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule-soft);
+  margin-bottom: 16px;
+}
+
+.tabBtn {
+  all: unset;
+  padding: 10px 20px;
+  font-family: var(--font-mono-family);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition:
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+
+.tabBtn:hover {
+  color: var(--ink-soft);
+}
+
+.tabBtn.active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card {
+  display: block;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.card:hover {
+  border-color: var(--rule);
+  box-shadow: var(--shadow);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.community {
+  font-family: var(--font-mono-family);
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.dot {
+  color: var(--ink-faint);
+  font-size: 10px;
+}
+
+.time {
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.cardTitle {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.commentBody {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.cardMeta {
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.loading,
+.empty {
+  color: var(--ink-faint);
+  font-size: 14px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .tabBtn {
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+}
