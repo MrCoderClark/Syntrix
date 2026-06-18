@@ -113,7 +113,11 @@ export function CommunityFeed({ communityId, slug }: Props) {
         </div>
       ) : posts.length === 0 ? (
         <p className={styles.placeholder}>
-          No posts yet in c/{slug}. Be the first to post!
+          {typeFilter === "question"
+            ? `No questions yet in c/${slug}.`
+            : typeFilter === "discussion"
+              ? `No posts yet in c/${slug}. Be the first to post!`
+              : `No posts yet in c/${slug}. Be the first to post!`}
         </p>
       ) : (
         <div className={styles.feed}>
@@ -151,6 +155,7 @@ export function CommunityFeed({ communityId, slug }: Props) {
                   </p>
                   <div className={styles.postMeta}>
                     <Avatar
+                      src={post.author_avatar_url ?? undefined}
                       alt={post.author_display_name ?? "Unknown"}
                       fallback={initials}
                       size="sm"

@@ -124,6 +124,7 @@ export default function HomePage() {
                   </p>
                   <div className={styles.postMeta}>
                     <Avatar
+                      src={post.author_avatar_url ?? undefined}
                       alt={post.author_display_name ?? "Unknown"}
                       fallback={initials}
                       size="sm"
