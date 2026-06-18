@@ -75,6 +75,30 @@ make db-history   # show migration history
 - Backend: http://127.0.0.1:8001 — FastAPI, hot-reload on file changes
 - Frontend: http://127.0.0.1:3000 — Next.js, hot-reload on file changes
 
+## Video embeds
+
+Posts support embedded video via the `▶` toolbar button in the editor.
+The embed URL is rendered as an iframe on the post detail page.
+
+**Allowed hosts:** YouTube, Vimeo, Twitch, Dailymotion, Streamable,
+CodePen, CodeSandbox, and `localhost` / `127.0.0.1` (for local dev).
+
+**Custom player color** (localhost video app):
+
+```
+<!-- Default indigo -->
+http://localhost:3007/embed/<video-id>?color=indigo
+
+<!-- Custom hex (URL-encoded #) -->
+http://localhost:3007/embed/<video-id>?color=%23e8472b
+```
+
+The `color` query parameter sets the play button color. Use a named
+color or a URL-encoded hex value (`%23` = `#`).
+
+**Editing:** Double-click the embed placeholder in the editor to change
+the URL.
+
 ## Layout
 
 - `backend/` — Python + FastAPI ("the brain")

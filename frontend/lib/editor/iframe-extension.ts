@@ -50,9 +50,10 @@ export const Iframe = Node.create<IframeOptions>({
   },
 
   addNodeView() {
-    return ({ node }) => {
+    return ({ node, editor, getPos }) => {
       const wrapper = document.createElement("div");
       wrapper.classList.add("iframe-placeholder");
+      wrapper.title = "Double-click to edit URL";
 
       const icon = document.createElement("span");
       icon.classList.add("iframe-placeholder-icon");
@@ -63,6 +64,20 @@ export const Iframe = Node.create<IframeOptions>({
       url.classList.add("iframe-placeholder-url");
       url.textContent = node.attrs.src || "No URL";
       wrapper.appendChild(url);
+
+      wrapper.addEventListener("dblclick", () => {
+        const newSrc = prompt("Edit embed URL:", node.attrs.src || "");
+        if (newSrc !== null && newSrc !== node.attrs.src) {
+          const pos = getPos();
+          if (pos === undefined) return;
+          editor.view.dispatch(
+            editor.view.state.tr.setNodeMarkup(pos, undefined, {
+              ...node.attrs,
+              src: newSrc,
+            }),
+          );
+        }
+      });
 
       return {
         dom: wrapper,
