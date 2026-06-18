@@ -1,72 +1,108 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Wordmark } from "@/components/Wordmark";
-import { HomeIcon, SearchIcon, BellIcon, UserIcon } from "@/components/icons";
+import { HomeIcon, SearchIcon, UserIcon } from "@/components/icons";
 import styles from "./Sidebar.module.css";
 
-interface NavItem {
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-  badge?: string;
-}
-
 interface CommunityItem {
+  id: string;
   slug: string;
+  name: string;
   color: string;
-  members: string;
+  member_count: number;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { icon: <HomeIcon />, label: "Feed", active: true },
-  { icon: <SearchIcon />, label: "Explore" },
-  { icon: <BellIcon />, label: "Notifications", badge: "12" },
-  { icon: <UserIcon />, label: "My profile" },
+const NAV_ITEMS = [
+  { icon: <HomeIcon />, label: "Feed", href: "/" },
+  { icon: <SearchIcon />, label: "Explore", href: "/communities" },
+  { icon: <UserIcon />, label: "My profile", href: "/settings/profile" },
 ];
 
-const COMMUNITIES: CommunityItem[] = [
-  { slug: "homelab", color: "var(--c-homelab)", members: "48.2k" },
-  { slug: "halo", color: "var(--c-halo)", members: "31.6k" },
-  { slug: "sre", color: "var(--c-sre)", members: "22.8k" },
-  { slug: "proxmox", color: "var(--c-proxmox)", members: "14.0k" },
-  { slug: "golang", color: "var(--c-golang)", members: "39.1k" },
-  { slug: "security", color: "var(--c-sec)", members: "28.5k" },
-];
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
 
-export function Sidebar() {
+export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
+  const pathname = usePathname();
+  const [communities, setCommunities] = useState<CommunityItem[]>([]);
+
+  useEffect(() => {
+    fetch("/api/communities/mine")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => setCommunities(data))
+      .catch(() => {});
+  }, []);
+
   return (
-    <aside className={styles.sidebar}>
+    <aside
+      className={`${styles.sidebar}${mobileOpen ? ` ${styles.mobileOpen}` : ""}`}
+    >
       <div className={styles.wordmarkWrap}>
         <Wordmark />
       </div>
 
       <div className={styles.navLabel}>For you</div>
       <ul>
-        {NAV_ITEMS.map((item) => (
-          <li key={item.label}>
-            <button
-              className={`${styles.navItem}${item.active ? ` ${styles.active}` : ""}`}
-            >
-              <span className={styles.icon}>{item.icon}</span>
-              <span>{item.label}</span>
-              {item.badge && <span className={styles.badge}>{item.badge}</span>}
-            </button>
-          </li>
-        ))}
+        {NAV_ITEMS.map((item) => {
+          const active =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(item.href);
+          return (
+            <li key={item.label}>
+              <Link
+                href={item.href}
+                className={`${styles.navItem}${active ? ` ${styles.active}` : ""}`}
+                onClick={onClose}
+              >
+                <span className={styles.icon}>{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
 
       <div className={styles.navLabel}>Communities</div>
       <ul>
-        {COMMUNITIES.map((c) => (
-          <li key={c.slug}>
-            <button className={styles.communityItem}>
+        {communities.map((c) => {
+          const active = pathname.startsWith(`/c/${c.slug}`);
+          return (
+            <li key={c.id}>
+              <Link
+                href={`/c/${c.slug}`}
+                className={`${styles.communityItem}${active ? ` ${styles.activeCommunity}` : ""}`}
+                onClick={onClose}
+              >
+                <span
+                  className={styles.communityDot}
+                  style={{ background: c.color }}
+                />
+                <span>c/{c.slug}</span>
+                <span className={styles.members}>{c.member_count}</span>
+              </Link>
+            </li>
+          );
+        })}
+        {communities.length === 0 && (
+          <li>
+            <Link
+              href="/communities"
+              className={styles.communityItem}
+              onClick={onClose}
+            >
               <span
                 className={styles.communityDot}
-                style={{ background: c.color }}
+                style={{ background: "var(--ink-faint)" }}
               />
-              <span>c/{c.slug}</span>
-              <span className={styles.members}>{c.members}</span>
-            </button>
+              <span>Browse communities</span>
+            </Link>
           </li>
-        ))}
+        )}
       </ul>
     </aside>
   );

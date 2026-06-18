@@ -79,6 +79,10 @@ async def create_comment(
         parent = await session.get(Comment, body.parent_comment_id)
         if not parent or parent.post_id != post_id:
             raise HTTPException(status_code=404, detail="Parent comment not found")
+        if parent.deleted_at or parent.removed_at:
+            raise HTTPException(
+                status_code=400, detail="Cannot reply to a deleted or removed comment"
+            )
         parent_path = parent.path
         parent_id = parent.id
 
@@ -181,6 +185,8 @@ async def remove_comment(
         raise HTTPException(status_code=404, detail="Comment not found")
 
     post = await session.get(Post, comment.post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
     if user.role != "admin":
         membership = await session.execute(
             select(CommunityMembership).where(

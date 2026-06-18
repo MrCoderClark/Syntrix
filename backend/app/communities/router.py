@@ -47,6 +47,28 @@ async def list_communities(session: AsyncSession = Depends(get_session)):
     return [_to_response(row.Community, row.cnt) for row in result.all()]
 
 
+@router.get("/mine", response_model=list[CommunityResponse])
+async def my_communities(
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+):
+    stmt = (
+        select(Community, func.count(CommunityMembership.id).label("cnt"))
+        .join(
+            CommunityMembership,
+            Community.id == CommunityMembership.community_id,
+        )
+        .where(
+            CommunityMembership.user_id == user.id,
+            CommunityMembership.banned_at.is_(None),
+        )
+        .group_by(Community.id)
+        .order_by(Community.name)
+    )
+    result = await session.execute(stmt)
+    return [_to_response(row.Community, row.cnt) for row in result.all()]
+
+
 @router.get("/{slug}")
 async def get_community(
     slug: str,

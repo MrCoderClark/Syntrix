@@ -15,16 +15,24 @@ export function CommentSection({ postId }: Props) {
   const [comments, setComments] = useState<CommentData[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [rootJson, setRootJson] = useState<JSONContent | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
 
   const fetchComments = useCallback(async () => {
-    const res = await fetch(`/api/posts/${postId}/comments`);
-    if (res.ok) {
-      const data = await res.json();
-      setComments(data.comments);
-      setTotalCount(data.total_count);
+    setError(false);
+    try {
+      const res = await fetch(`/api/posts/${postId}/comments`);
+      if (res.ok) {
+        const data = await res.json();
+        setComments(data.comments);
+        setTotalCount(data.total_count);
+      } else {
+        setError(true);
+      }
+    } catch {
+      setError(true);
     }
     setLoading(false);
   }, [postId]);
@@ -69,6 +77,13 @@ export function CommentSection({ postId }: Props) {
 
       {loading ? (
         <p className={styles.loading}>Loading comments...</p>
+      ) : error ? (
+        <p className={styles.empty}>
+          Failed to load comments.{" "}
+          <button onClick={fetchComments} className={styles.retryBtn}>
+            Try again
+          </button>
+        </p>
       ) : comments.length === 0 ? (
         <p className={styles.empty}>No comments yet. Be the first!</p>
       ) : (

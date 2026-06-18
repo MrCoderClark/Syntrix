@@ -1,8 +1,10 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { VoteWidget } from "@/components/VoteWidget";
 import { CommentSection } from "./CommentSection";
 import { PostActions } from "./PostActions";
+import { timeAgo } from "@/lib/text";
 import styles from "./PostDetail.module.css";
 
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://127.0.0.1:8001";
@@ -35,17 +37,6 @@ async function getPost(id: string): Promise<PostData | null> {
   return res.json();
 }
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-}
-
 export default async function PostDetailPage({
   params,
 }: {
@@ -65,9 +56,9 @@ export default async function PostDetailPage({
   return (
     <article className={styles.page}>
       <div className={styles.breadcrumb}>
-        <a href={`/c/${slug}`} className={styles.crumbLink}>
+        <Link href={`/c/${slug}`} className={styles.crumbLink}>
           c/{slug}
-        </a>
+        </Link>
       </div>
 
       {post.removed_at && (
@@ -90,9 +81,12 @@ export default async function PostDetailPage({
         />
         <span className={styles.authorName}>
           {post.author_handle ? (
-            <a href={`/u/${post.author_handle}`} className={styles.authorLink}>
+            <Link
+              href={`/u/${post.author_handle}`}
+              className={styles.authorLink}
+            >
               {post.author_display_name ?? post.author_handle}
-            </a>
+            </Link>
           ) : (
             "[deleted]"
           )}

@@ -26,6 +26,8 @@ async def vote_post(
     post = await session.get(Post, post_id)
     if not post or post.deleted_at:
         raise HTTPException(status_code=404, detail="Post not found")
+    if post.removed_at:
+        raise HTTPException(status_code=403, detail="Cannot vote on a removed post")
 
     if post.author_id == user.id:
         raise HTTPException(status_code=403, detail="Cannot vote on your own post")
@@ -76,11 +78,15 @@ async def vote_comment(
     comment = await session.get(Comment, comment_id)
     if not comment or comment.deleted_at:
         raise HTTPException(status_code=404, detail="Comment not found")
+    if comment.removed_at:
+        raise HTTPException(status_code=403, detail="Cannot vote on a removed comment")
 
     if comment.author_id == user.id:
         raise HTTPException(status_code=403, detail="Cannot vote on your own comment")
 
     post = await session.get(Post, comment.post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
     membership = await session.execute(
         select(CommunityMembership).where(
             CommunityMembership.community_id == post.community_id,

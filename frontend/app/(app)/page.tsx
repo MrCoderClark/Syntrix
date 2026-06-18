@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
 import { FeedControls } from "@/components/FeedControls";
+import { PostCardSkeleton } from "@/components/PostCardSkeleton";
 import { VoteWidget } from "@/components/VoteWidget";
+import { stripHtml, timeAgo } from "@/lib/text";
 import styles from "./Home.module.css";
 
 interface PostItem {
@@ -27,35 +29,28 @@ interface PostItem {
 type SortMode = "hot" | "new" | "top";
 type Period = "today" | "week" | "month" | "all";
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-}
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "").slice(0, 200);
-}
-
 export default function HomePage() {
   const [sort, setSort] = useState<SortMode>("hot");
   const [period, setPeriod] = useState<Period>("all");
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams({ sort });
-    if (sort === "top" && period !== "all") params.set("period", period);
-    const res = await fetch(`/api/feed?${params.toString()}`);
-    if (res.ok) {
-      const data = await res.json();
-      setPosts(data.posts ?? []);
+    setError(false);
+    try {
+      const params = new URLSearchParams({ sort });
+      if (sort === "top" && period !== "all") params.set("period", period);
+      const res = await fetch(`/api/feed?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPosts(data.posts ?? []);
+      } else {
+        setError(true);
+      }
+    } catch {
+      setError(true);
     }
     setLoading(false);
   }, [sort, period]);
@@ -76,7 +71,14 @@ export default function HomePage() {
       />
 
       {loading ? (
-        <p className={styles.placeholder}>Loading...</p>
+        <PostCardSkeleton />
+      ) : error ? (
+        <div className={styles.empty}>
+          <p>Something went wrong loading your feed.</p>
+          <button onClick={fetchPosts} className={styles.exploreLink}>
+            Try again
+          </button>
+        </div>
       ) : posts.length === 0 ? (
         <div className={styles.empty}>
           <p>No posts in your feed yet.</p>

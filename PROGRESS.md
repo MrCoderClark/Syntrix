@@ -5,11 +5,11 @@ Track build progress through Syntrix. Update this file as sections complete
 
 ## Current state — read this first
 
-> **Phase 1 implementation is underway.** Sections 01–09 are merged.
+> **Phase 1 is feature-complete.** All 10 sections merged to `main`.
 >
-> **Current branch:** `feat/voting-feeds`
-> **Next action:** hand-back section 10 (`feat/voting-feeds`) — votes, triggers,
-> Hot/New/Top feeds, home feed, VoteWidget.
+> **Current branch:** `main`
+> **Next action:** decide what's next — Phase 1 polish, Phase 2 planning, or
+> something else.
 
 ## Convention
 - `[ ]` = Not started
@@ -29,7 +29,7 @@ Track build progress through Syntrix. Update this file as sections complete
 | 07 | `[x]` | `feat/storage` | `StorageBackend`, upload pipeline, avatars |
 | 08 | `[x]` | `feat/posts` | TipTap, post CRUD, image embeds, mod remove |
 | 09 | `[x]` | `feat/comments` | Threaded comments via `ltree`, mod remove |
-| 10 | `[-]` | `feat/voting-feeds` | Votes, triggers, Hot/New/Top feeds, home feed view |
+| 10 | `[x]` | `feat/voting-feeds` | Votes, triggers, Hot/New/Top feeds, home feed view |
 
 Detailed per-section plans live in `.agent/plans/<n>.<slug>.md` and are written
 by the writing-plans skill after the spec is approved.

@@ -27,7 +27,12 @@ export default function ProfileSettingsPage() {
       .catch(() => setProfile(null));
   }, []);
 
-  if (!profile) return <p>Loading...</p>;
+  if (!profile)
+    return (
+      <p style={{ color: "var(--ink-faint)", padding: "32px 0" }}>
+        Loading profile...
+      </p>
+    );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -30,13 +30,11 @@
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
+  text-decoration: none;
   transition:
     background var(--duration-fast) ease,
     color var(--duration-fast) ease;
-  border: none;
-  background: none;
   width: 100%;
-  text-align: left;
 }
 
 .navItem:hover {
@@ -83,11 +81,15 @@
   cursor: pointer;
   font-size: 14px;
   color: var(--ink-soft);
+  text-decoration: none;
   transition: background var(--duration-fast) ease;
-  border: none;
-  background: none;
   width: 100%;
-  text-align: left;
+}
+
+.activeCommunity {
+  background: var(--paper-warm);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .communityItem:hover {
@@ -118,4 +120,21 @@
 }
 .sidebar::-webkit-scrollbar-track {
   background: transparent;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    width: var(--sidebar-width);
+    background: var(--paper);
+    transform: translateX(-100%);
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .mobileOpen {
+    transform: translateX(0);
+  }
 }

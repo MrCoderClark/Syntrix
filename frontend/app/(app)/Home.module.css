@@ -127,3 +127,17 @@
   font-family: var(--font-mono-family);
   font-size: 11px;
 }
+
+@media (max-width: 640px) {
+  .page {
+    padding: 20px 12px;
+  }
+
+  .heading {
+    font-size: 1.3rem;
+  }
+
+  .postCard {
+    padding: 10px 12px;
+  }
+}

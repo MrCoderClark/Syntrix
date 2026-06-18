@@ -33,7 +33,12 @@ export default function EditPostPage() {
       .catch(() => {});
   }, [params.id]);
 
-  if (!post) return <p style={{ padding: "32px" }}>Loading...</p>;
+  if (!post)
+    return (
+      <p style={{ color: "var(--ink-faint)", padding: "32px" }}>
+        Loading post...
+      </p>
+    );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
