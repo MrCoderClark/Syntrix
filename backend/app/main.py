@@ -12,6 +12,7 @@ from app.posts.router import router as posts_router
 from app.profiles.router import router as profiles_router
 from app.search.router import router as search_router
 from app.storage.router import router as storage_router
+from app.tags.router import router as tags_router
 from app.votes.router import router as votes_router
 
 settings = get_settings()
@@ -31,6 +32,7 @@ app.include_router(posts_router)
 app.include_router(profiles_router)
 app.include_router(search_router)
 app.include_router(storage_router)
+app.include_router(tags_router)
 app.include_router(votes_router)
 
 

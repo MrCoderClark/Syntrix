@@ -5,11 +5,12 @@ Track build progress through Syntrix. Update this file as sections complete
 
 ## Current state — read this first
 
-> **Phase 1 is feature-complete.** All 10 sections merged to `main`.
+> **Phase 1 is feature-complete + polished.** All 10 core sections plus
+> polish, user menu/search, and enhanced profiles merged to `main`.
 >
 > **Current branch:** `main`
-> **Next action:** decide what's next — Phase 1 polish, Phase 2 planning, or
-> something else.
+> **Next action:** decide what's next — Phase 2 planning, or additional
+> Phase 1 enhancements.
 
 ## Convention
 - `[ ]` = Not started
@@ -30,6 +31,9 @@ Track build progress through Syntrix. Update this file as sections complete
 | 08 | `[x]` | `feat/posts` | TipTap, post CRUD, image embeds, mod remove |
 | 09 | `[x]` | `feat/comments` | Threaded comments via `ltree`, mod remove |
 | 10 | `[x]` | `feat/voting-feeds` | Votes, triggers, Hot/New/Top feeds, home feed view |
+| 11 | `[x]` | `fix/phase1-polish` | QA pass, responsive, loading states, error handling |
+| 12 | `[x]` | `feat/user-menu-search` | Avatar dropdown menu, site-wide search |
+| 13 | `[x]` | `feat/profiles-v2` | Stats, social links, activity tabs, enriched profile |
 
 Detailed per-section plans live in `.agent/plans/<n>.<slug>.md` and are written
 by the writing-plans skill after the spec is approved.
