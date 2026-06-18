@@ -4,7 +4,7 @@ import { useState } from "react";
 import styles from "./VoteWidget.module.css";
 
 interface Props {
-  targetType: "post" | "comment";
+  targetType: "post" | "comment" | "answer";
   targetId: string;
   score: number;
   userVote: number;
@@ -32,10 +32,12 @@ export function VoteWidget({
     setBusy(true);
 
     try {
-      const url =
-        targetType === "post"
-          ? `/api/posts/${targetId}/vote`
-          : `/api/comments/${targetId}/vote`;
+      const urls: Record<string, string> = {
+        post: `/api/posts/${targetId}/vote`,
+        comment: `/api/comments/${targetId}/vote`,
+        answer: `/api/answers/${targetId}/vote`,
+      };
+      const url = urls[targetType];
 
       const res = await fetch(url, {
         method: "POST",

@@ -3,39 +3,41 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Text, func, text
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    SmallInteger,
+    Text,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 
 
-class Post(Base):
-    __tablename__ = "posts"
+class Answer(Base):
+    __tablename__ = "answers"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    community_id: Mapped[uuid.UUID] = mapped_column(
+    question_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("communities.id", ondelete="CASCADE"),
+        ForeignKey("posts.id", ondelete="CASCADE"),
         nullable=False,
     )
     author_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
     )
-    title: Mapped[str] = mapped_column(Text, nullable=False)
     body_json: Mapped[dict] = mapped_column(JSONB, nullable=False)
     body_html: Mapped[str] = mapped_column(Text, nullable=False)
     score: Mapped[int] = mapped_column(Integer, server_default=text("0"), nullable=False)
-    comment_count: Mapped[int] = mapped_column(Integer, server_default=text("0"), nullable=False)
-    post_type: Mapped[str] = mapped_column(
-        Text, server_default=text("'discussion'"), nullable=False
-    )
-    answer_count: Mapped[int] = mapped_column(Integer, server_default=text("0"), nullable=False)
-    has_accepted_answer: Mapped[bool] = mapped_column(
-        Boolean, server_default=text("false"), nullable=False
-    )
-    is_pinned: Mapped[bool] = mapped_column(Boolean, server_default=text("false"), nullable=False)
+    is_accepted: Mapped[bool] = mapped_column(Boolean, server_default=text("false"), nullable=False)
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     removed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     removed_by: Mapped[uuid.UUID | None] = mapped_column(
@@ -54,20 +56,22 @@ class Post(Base):
     )
 
 
-class PostAttachment(Base):
-    __tablename__ = "post_attachments"
+class AnswerVote(Base):
+    __tablename__ = "answer_votes"
+    __table_args__ = (UniqueConstraint("answer_id", "user_id", name="uq_answer_votes_answer_user"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    post_id: Mapped[uuid.UUID] = mapped_column(
+    answer_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("posts.id", ondelete="CASCADE"),
+        ForeignKey("answers.id", ondelete="CASCADE"),
         nullable=False,
     )
-    storage_key: Mapped[str] = mapped_column(Text, nullable=False)
-    content_type: Mapped[str] = mapped_column(Text, nullable=False)
-    width: Mapped[int | None] = mapped_column(Integer)
-    height: Mapped[int | None] = mapped_column(Integer)
-    size_bytes: Mapped[int | None] = mapped_column(Integer)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    value: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

@@ -9,13 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import CurrentUser, OptionalUser
 from app.db.session import get_session
-from app.models import Community, CommunityMembership, Post, PostAttachment, User
+from app.models import Community, CommunityMembership, Post, PostAttachment, QuestionTag, Tag, User
 from app.posts.renderer import render_tiptap_json
 
 from .schemas import (
     CreatePostRequest,
     PostListResponse,
     PostResponse,
+    PostTagResponse,
     RemovePostRequest,
     UpdatePostRequest,
 )
@@ -30,6 +31,7 @@ def _post_response(
     *,
     author: User | None = None,
     community: Community | None = None,
+    tags: list[PostTagResponse] | None = None,
 ) -> PostResponse:
     return PostResponse(
         id=post.id,
@@ -46,6 +48,10 @@ def _post_response(
         score=post.score,
         comment_count=post.comment_count,
         is_pinned=post.is_pinned,
+        post_type=post.post_type,
+        answer_count=post.answer_count,
+        has_accepted_answer=post.has_accepted_answer,
+        tags=tags or [],
         deleted_at=post.deleted_at,
         removed_at=post.removed_at,
         created_at=post.created_at,
@@ -104,6 +110,7 @@ async def create_post(
         title=body.title,
         body_json=body.body_json,
         body_html=body_html,
+        post_type=body.post_type,
     )
     session.add(post)
     await session.flush()
@@ -121,7 +128,35 @@ async def create_post(
             )
         )
 
-    return _post_response(post, author=user, community=community)
+    tag_responses: list[PostTagResponse] = []
+    if body.post_type == "question" and body.tag_ids:
+        result = await session.execute(
+            select(Tag).where(
+                Tag.id.in_(body.tag_ids),
+                Tag.community_id == community.id,
+            )
+        )
+        tags = result.scalars().all()
+        for tag in tags:
+            session.add(QuestionTag(question_id=post.id, tag_id=tag.id))
+            tag.usage_count = tag.usage_count + 1
+            tag_responses.append(
+                PostTagResponse(id=str(tag.id), slug=tag.slug, name=tag.name, color=tag.color)
+            )
+
+    return _post_response(post, author=user, community=community, tags=tag_responses)
+
+
+async def _load_post_tags(session: AsyncSession, post_id: uuid.UUID) -> list[PostTagResponse]:
+    result = await session.execute(
+        select(Tag)
+        .join(QuestionTag, QuestionTag.tag_id == Tag.id)
+        .where(QuestionTag.question_id == post_id)
+    )
+    return [
+        PostTagResponse(id=str(t.id), slug=t.slug, name=t.name, color=t.color)
+        for t in result.scalars().all()
+    ]
 
 
 @router.get("/{post_id}", response_model=PostResponse)
@@ -137,7 +172,8 @@ async def get_post(
     author = await session.get(User, post.author_id) if post.author_id else None
     community = await session.get(Community, post.community_id)
 
-    return _post_response(post, author=author, community=community)
+    tags = await _load_post_tags(session, post.id) if post.post_type == "question" else []
+    return _post_response(post, author=author, community=community, tags=tags)
 
 
 @router.patch("/{post_id}", response_model=PostResponse)
@@ -262,6 +298,7 @@ async def unpin_post(
 async def list_community_posts(
     community_id: uuid.UUID,
     cursor: str | None = None,
+    post_type: str | None = None,
     session: AsyncSession = Depends(get_session),
 ):
     community = await session.get(Community, community_id)
@@ -278,6 +315,9 @@ async def list_community_posts(
         .order_by(Post.is_pinned.desc(), Post.created_at.desc())
         .limit(PAGE_SIZE + 1)
     )
+
+    if post_type in ("discussion", "question"):
+        stmt = stmt.where(Post.post_type == post_type)
 
     if cursor:
         from datetime import datetime as dt

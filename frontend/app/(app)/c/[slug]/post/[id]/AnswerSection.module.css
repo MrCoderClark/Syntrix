@@ -1,0 +1,34 @@
+.section {
+  margin-top: 32px;
+  border-top: 2px solid var(--rule);
+  padding-top: 24px;
+}
+
+.heading {
+  font-family: var(--font-display-family);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.list {
+  margin-bottom: 32px;
+}
+
+.form {
+  border-top: 1px solid var(--rule-soft);
+  padding-top: 24px;
+}
+
+.formHeading {
+  font-family: var(--font-display-family);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.formActions {
+  margin-top: 12px;
+}
