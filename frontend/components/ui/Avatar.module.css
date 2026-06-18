@@ -34,6 +34,12 @@
   font-size: 20px;
 }
 
+.xl {
+  width: 88px;
+  height: 88px;
+  font-size: 28px;
+}
+
 .img {
   width: 100%;
   height: 100%;

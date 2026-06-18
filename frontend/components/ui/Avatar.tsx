@@ -4,7 +4,7 @@ interface AvatarProps {
   src?: string;
   alt: string;
   fallback: string;
-  size?: "xs" | "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   bgColor?: string;
   fgColor?: string;
 }
