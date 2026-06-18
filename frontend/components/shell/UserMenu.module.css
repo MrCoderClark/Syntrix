@@ -1,0 +1,72 @@
+.wrapper {
+  position: relative;
+}
+
+.trigger {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-radius: 50%;
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.trigger:hover {
+  box-shadow: 0 0 0 2px var(--rule);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  z-index: 200;
+  padding: 4px 0;
+}
+
+.userInfo {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.displayName {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.handle {
+  font-family: var(--font-mono-family);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.divider {
+  height: 1px;
+  background: var(--rule-soft);
+  margin: 4px 0;
+}
+
+.item {
+  all: unset;
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  font-size: 14px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: background var(--duration-fast) ease;
+}
+
+.item:hover {
+  background: var(--paper-warm);
+  color: var(--ink);
+}
