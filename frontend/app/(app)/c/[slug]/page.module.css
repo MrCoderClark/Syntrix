@@ -50,6 +50,13 @@
   color: var(--ink-faint);
 }
 
+.tagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
 .content {
   padding: 8px 0 40px;
 }

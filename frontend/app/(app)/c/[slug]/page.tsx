@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader, TitleAccent } from "@/components/ui/PageHeader";
+import { TagPill } from "@/components/ui/TagPill";
 import { CommunityFeed } from "./CommunityFeed";
 import { JoinButton } from "./JoinButton";
 import styles from "./page.module.css";
@@ -21,11 +22,26 @@ interface CommunityDetail {
   is_banned: boolean;
 }
 
+interface TagBrief {
+  id: string;
+  slug: string;
+  name: string;
+  color: string | null;
+}
+
 async function getCommunity(slug: string): Promise<CommunityDetail | null> {
   const res = await fetch(`${BACKEND_URL}/api/communities/${slug}`, {
     cache: "no-store",
   });
   if (!res.ok) return null;
+  return res.json();
+}
+
+async function getTags(slug: string): Promise<TagBrief[]> {
+  const res = await fetch(`${BACKEND_URL}/api/communities/${slug}/tags`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return [];
   return res.json();
 }
 
@@ -35,7 +51,10 @@ export default async function CommunityPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const community = await getCommunity(slug);
+  const [community, tags] = await Promise.all([
+    getCommunity(slug),
+    getTags(slug),
+  ]);
 
   if (!community) notFound();
 
@@ -84,6 +103,14 @@ export default async function CommunityPage({
           <span className={styles.statLabel}>created</span>
         </div>
       </div>
+
+      {tags.length > 0 && (
+        <div className={styles.tagsRow}>
+          {tags.map((t) => (
+            <TagPill key={t.id} name={t.name} color={t.color} />
+          ))}
+        </div>
+      )}
 
       <div className={styles.content}>
         <CommunityFeed communityId={community.id} slug={slug} />
