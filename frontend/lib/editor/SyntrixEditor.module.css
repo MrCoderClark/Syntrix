@@ -168,4 +168,12 @@
   width: 100%;
   height: 100%;
   border: none;
+  pointer-events: none;
+}
+
+.content
+  :global(.ProseMirror)
+  :global(.iframe-wrapper):global(.ProseMirror-selectednode) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
