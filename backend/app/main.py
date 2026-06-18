@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 
+from app.answers.router import router as answers_router
 from app.auth.oauth import register_oauth_providers
 from app.auth.router import router as auth_router
 from app.comments.router import router as comments_router
@@ -23,6 +24,7 @@ app.add_middleware(SessionMiddleware, secret_key=settings.jwt_secret_key)
 
 register_oauth_providers()
 
+app.include_router(answers_router)
 app.include_router(auth_router)
 app.include_router(comments_router)
 app.include_router(communities_router)

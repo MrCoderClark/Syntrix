@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.deps import OptionalUser
 from app.db.session import get_session
 from app.models import Community, CommunityMembership, Post, User
-from app.posts.schemas import PostListResponse, PostResponse
+from app.posts.schemas import PostListResponse, PostResponse, PostTagResponse
 
 from .algorithms import hot_order, new_order, top_order, top_period_filter
 
@@ -30,6 +30,7 @@ def _post_response(
     *,
     author: User | None = None,
     community: Community | None = None,
+    tags: list[PostTagResponse] | None = None,
 ) -> PostResponse:
     return PostResponse(
         id=post.id,
@@ -45,6 +46,10 @@ def _post_response(
         score=post.score,
         comment_count=post.comment_count,
         is_pinned=post.is_pinned,
+        post_type=post.post_type,
+        answer_count=post.answer_count,
+        has_accepted_answer=post.has_accepted_answer,
+        tags=tags or [],
         deleted_at=post.deleted_at,
         removed_at=post.removed_at,
         created_at=post.created_at,
@@ -69,6 +74,7 @@ def _apply_sort(stmt, sort: SortMode, period: str | None):
 async def home_feed(
     sort: SortMode = SortMode.hot,
     period: str | None = None,
+    post_type: str | None = None,
     limit: int = Query(default=PAGE_SIZE, le=100, ge=1),
     offset: int = Query(default=0, ge=0),
     user: OptionalUser = None,
@@ -80,6 +86,9 @@ async def home_feed(
         .join(Community, Post.community_id == Community.id)
         .where(Post.deleted_at.is_(None))
     )
+
+    if post_type in ("discussion", "question"):
+        stmt = stmt.where(Post.post_type == post_type)
 
     if user:
         stmt = stmt.join(
@@ -111,6 +120,7 @@ async def community_feed(
     community_id: uuid.UUID,
     sort: SortMode = SortMode.hot,
     period: str | None = None,
+    post_type: str | None = None,
     limit: int = Query(default=PAGE_SIZE, le=100, ge=1),
     offset: int = Query(default=0, ge=0),
     session: AsyncSession = Depends(get_session),
@@ -127,6 +137,9 @@ async def community_feed(
             Post.deleted_at.is_(None),
         )
     )
+
+    if post_type in ("discussion", "question"):
+        stmt = stmt.where(Post.post_type == post_type)
 
     if sort == SortMode.top:
         period_filter = top_period_filter(period or "all")

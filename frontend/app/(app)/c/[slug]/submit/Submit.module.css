@@ -16,6 +16,42 @@
   color: var(--accent);
 }
 
+.typeTabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.typeTab {
+  all: unset;
+  padding: 8px 20px;
+  font-family: var(--font-body-family);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.typeTab:hover {
+  background: var(--rule-soft);
+}
+
+.typeTabActive {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.typeTabActive:hover {
+  background: var(--ink);
+}
+
 .form {
   display: flex;
   flex-direction: column;

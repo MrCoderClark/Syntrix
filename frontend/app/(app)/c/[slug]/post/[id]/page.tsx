@@ -1,13 +1,22 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
+import { TagPill } from "@/components/ui/TagPill";
 import { VoteWidget } from "@/components/VoteWidget";
+import { AnswerSection } from "./AnswerSection";
 import { CommentSection } from "./CommentSection";
 import { PostActions } from "./PostActions";
 import { timeAgo } from "@/lib/text";
 import styles from "./PostDetail.module.css";
 
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://127.0.0.1:8001";
+
+interface PostTag {
+  id: string;
+  slug: string;
+  name: string;
+  color: string | null;
+}
 
 interface PostData {
   id: string;
@@ -23,6 +32,10 @@ interface PostData {
   score: number;
   comment_count: number;
   is_pinned: boolean;
+  post_type: string;
+  answer_count: number;
+  has_accepted_answer: boolean;
+  tags: PostTag[];
   deleted_at: string | null;
   removed_at: string | null;
   created_at: string;
@@ -46,6 +59,7 @@ export default async function PostDetailPage({
   const post = await getPost(id);
   if (!post) notFound();
 
+  const isQuestion = post.post_type === "question";
   const initials = (post.author_display_name ?? "?")
     .split(" ")
     .map((w) => w[0])
@@ -71,6 +85,14 @@ export default async function PostDetailPage({
         {post.is_pinned && <span className={styles.pin}>📌</span>}
         {post.title}
       </h1>
+
+      {isQuestion && post.tags.length > 0 && (
+        <div className={styles.tagRow}>
+          {post.tags.map((t) => (
+            <TagPill key={t.id} name={t.name} color={t.color} />
+          ))}
+        </div>
+      )}
 
       <div className={styles.authorRow}>
         <Avatar
@@ -110,15 +132,28 @@ export default async function PostDetailPage({
           layout="horizontal"
         />
         <span>·</span>
-        <span>
-          {post.comment_count}{" "}
-          {post.comment_count === 1 ? "comment" : "comments"}
-        </span>
+        {isQuestion ? (
+          <span>
+            {post.answer_count} {post.answer_count === 1 ? "answer" : "answers"}
+            {post.has_accepted_answer && (
+              <span className={styles.acceptedBadge}> ✓</span>
+            )}
+          </span>
+        ) : (
+          <span>
+            {post.comment_count}{" "}
+            {post.comment_count === 1 ? "comment" : "comments"}
+          </span>
+        )}
       </div>
 
       <PostActions postId={post.id} slug={slug} />
 
-      <CommentSection postId={post.id} />
+      {isQuestion ? (
+        <AnswerSection postId={post.id} questionAuthorId={post.author_id} />
+      ) : (
+        <CommentSection postId={post.id} />
+      )}
     </article>
   );
 }

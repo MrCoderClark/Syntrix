@@ -18,10 +18,15 @@ interface PostItem {
   score: number;
   comment_count: number;
   is_pinned: boolean;
+  post_type: string;
+  answer_count: number;
+  has_accepted_answer: boolean;
   removed_at: string | null;
   created_at: string;
   body_html: string;
 }
+
+type PostTypeFilter = "all" | "discussion" | "question";
 
 type SortMode = "hot" | "new" | "top";
 type Period = "today" | "week" | "month" | "all";
@@ -34,6 +39,7 @@ interface Props {
 export function CommunityFeed({ communityId, slug }: Props) {
   const [sort, setSort] = useState<SortMode>("hot");
   const [period, setPeriod] = useState<Period>("all");
+  const [typeFilter, setTypeFilter] = useState<PostTypeFilter>("all");
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -44,6 +50,7 @@ export function CommunityFeed({ communityId, slug }: Props) {
     try {
       const params = new URLSearchParams({ sort });
       if (sort === "top" && period !== "all") params.set("period", period);
+      if (typeFilter !== "all") params.set("post_type", typeFilter);
       const res = await fetch(
         `/api/communities/${communityId}/feed?${params.toString()}`,
       );
@@ -57,7 +64,7 @@ export function CommunityFeed({ communityId, slug }: Props) {
       setError(true);
     }
     setLoading(false);
-  }, [communityId, sort, period]);
+  }, [communityId, sort, period, typeFilter]);
 
   useEffect(() => {
     fetchPosts();
@@ -65,6 +72,19 @@ export function CommunityFeed({ communityId, slug }: Props) {
 
   return (
     <>
+      <div className={styles.typeTabs}>
+        {(["all", "discussion", "question"] as PostTypeFilter[]).map((t) => (
+          <button
+            key={t}
+            type="button"
+            className={`${styles.typeTab} ${typeFilter === t ? styles.typeTabActive : ""}`}
+            onClick={() => setTypeFilter(t)}
+          >
+            {t === "all" ? "All" : t === "discussion" ? "Posts" : "Questions"}
+          </button>
+        ))}
+      </div>
+
       <FeedControls
         sort={sort}
         period={period}
@@ -142,7 +162,17 @@ export function CommunityFeed({ communityId, slug }: Props) {
                       {timeAgo(post.created_at)}
                     </span>
                     <span className={styles.postStats}>
-                      {post.comment_count} comments
+                      {post.post_type === "question" ? (
+                        <>
+                          {post.answer_count}{" "}
+                          {post.answer_count === 1 ? "answer" : "answers"}
+                          {post.has_accepted_answer && (
+                            <span className={styles.acceptedMark}> ✓</span>
+                          )}
+                        </>
+                      ) : (
+                        <>{post.comment_count} comments</>
+                      )}
                     </span>
                   </div>
                 </Link>

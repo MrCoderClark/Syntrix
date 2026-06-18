@@ -43,6 +43,18 @@
   margin-right: 8px;
 }
 
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.acceptedBadge {
+  color: var(--good);
+  font-weight: 700;
+}
+
 .authorRow {
   display: flex;
   align-items: center;
