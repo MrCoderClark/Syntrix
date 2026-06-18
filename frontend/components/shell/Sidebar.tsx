@@ -26,7 +26,7 @@ export function Sidebar() {
   const [communities, setCommunities] = useState<CommunityItem[]>([]);
 
   useEffect(() => {
-    fetch("/api/communities")
+    fetch("/api/communities/mine")
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => setCommunities(data))
       .catch(() => {});
