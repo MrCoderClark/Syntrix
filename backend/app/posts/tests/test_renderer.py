@@ -137,3 +137,35 @@ def test_list():
     html = render_tiptap_json(doc)
     assert "<ul>" in html
     assert "<li>" in html
+
+
+def test_iframe_allowed_host():
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "iframe",
+                "attrs": {"src": "http://localhost:3007/embed/abc123"},
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert '<div class="iframe-wrap">' in html
+    assert "<iframe " in html
+    assert "localhost:3007/embed/abc123" in html
+
+
+def test_iframe_blocked_host():
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "iframe",
+                "attrs": {"src": "https://evil.com/exploit"},
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "<iframe" not in html
+    assert "<a " in html
+    assert "evil.com/exploit" in html

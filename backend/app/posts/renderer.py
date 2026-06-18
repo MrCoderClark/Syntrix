@@ -1,6 +1,23 @@
 from __future__ import annotations
 
 from html import escape
+from urllib.parse import urlparse
+
+ALLOWED_IFRAME_HOSTS = {
+    "www.youtube.com",
+    "youtube.com",
+    "www.youtube-nocookie.com",
+    "player.vimeo.com",
+    "www.twitch.tv",
+    "clips.twitch.tv",
+    "player.twitch.tv",
+    "www.dailymotion.com",
+    "streamable.com",
+    "codepen.io",
+    "codesandbox.io",
+    "localhost",
+    "127.0.0.1",
+}
 
 
 def render_tiptap_json(doc: dict) -> str:
@@ -55,6 +72,20 @@ def _render_node(node: dict) -> str:
         src = escape(attrs.get("src") or "")
         alt = escape(attrs.get("alt") or "")
         return f'<img src="{src}" alt="{alt}" />'
+
+    if t == "iframe":
+        src = attrs.get("src") or ""
+        parsed = urlparse(src)
+        if parsed.hostname not in ALLOWED_IFRAME_HOSTS:
+            return (
+                f'<p><a href="{escape(src)}" target="_blank" rel="noopener">{escape(src)}</a></p>'
+            )
+        safe_src = escape(src)
+        return (
+            f'<div class="iframe-wrap">'
+            f'<iframe src="{safe_src}" frameborder="0" allowfullscreen></iframe>'
+            f"</div>"
+        )
 
     if t == "hardBreak":
         return "<br />"

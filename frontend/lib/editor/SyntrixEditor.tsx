@@ -158,6 +158,17 @@ export function SyntrixEditor({
         >
           📷
         </button>
+        <button
+          type="button"
+          className={styles.tbtn}
+          onClick={() => {
+            const src = window.prompt("Video embed URL:");
+            if (src) editor.chain().focus().setIframe({ src }).run();
+          }}
+          title="Embed video"
+        >
+          ▶
+        </button>
         <input
           ref={fileRef}
           type="file"
