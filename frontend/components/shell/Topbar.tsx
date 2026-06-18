@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { SearchIcon, PlusIcon } from "@/components/icons";
-import { Avatar } from "@/components/ui/Avatar";
+import { UserMenu } from "./UserMenu";
 import styles from "./Topbar.module.css";
-
-interface UserInfo {
-  display_name: string;
-  avatar_url: string | null;
-}
 
 interface TopbarProps {
   onMenuToggle?: () => void;
@@ -18,26 +13,19 @@ interface TopbarProps {
 
 export function Topbar({ onMenuToggle }: TopbarProps) {
   const pathname = usePathname();
-  const [user, setUser] = useState<UserInfo | null>(null);
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data) setUser(data);
-      })
-      .catch(() => {});
-  }, []);
-
-  const initials = (user?.display_name ?? "?")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const router = useRouter();
+  const [query, setQuery] = useState("");
 
   const slugMatch = pathname.match(/^\/c\/([^/]+)/);
   const newPostHref = slugMatch ? `/c/${slugMatch[1]}/submit` : "/communities";
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const q = query.trim();
+    if (q) {
+      router.push(`/search?q=${encodeURIComponent(q)}`);
+    }
+  }
 
   return (
     <div className={styles.topbar}>
@@ -55,26 +43,21 @@ export function Topbar({ onMenuToggle }: TopbarProps) {
           />
         </svg>
       </button>
-      <div className={styles.search}>
+      <form className={styles.search} onSubmit={handleSearch}>
         <SearchIcon size={16} style={{ color: "var(--ink-faint)" }} />
         <input
           type="text"
           className={styles.searchInput}
           placeholder="Search communities, posts, people..."
-          readOnly
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
         />
-      </div>
+      </form>
       <Link href={newPostHref} className={styles.newPostBtn}>
         <PlusIcon />
         New post
       </Link>
-      <Link href="/settings/profile">
-        <Avatar
-          src={user?.avatar_url ?? undefined}
-          alt={user?.display_name ?? "profile"}
-          fallback={initials}
-        />
-      </Link>
+      <UserMenu />
     </div>
   );
 }
