@@ -6,6 +6,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { FeedControls } from "@/components/FeedControls";
 import { PostCardSkeleton } from "@/components/PostCardSkeleton";
 import { VoteWidget } from "@/components/VoteWidget";
+import { stripHtml, timeAgo } from "@/lib/text";
 import styles from "./Home.module.css";
 
 interface PostItem {
@@ -27,21 +28,6 @@ interface PostItem {
 
 type SortMode = "hot" | "new" | "top";
 type Period = "today" | "week" | "month" | "all";
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-}
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "").slice(0, 200);
-}
 
 export default function HomePage() {
   const [sort, setSort] = useState<SortMode>("hot");

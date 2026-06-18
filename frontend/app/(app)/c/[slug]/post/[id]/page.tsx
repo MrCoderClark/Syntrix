@@ -4,6 +4,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { VoteWidget } from "@/components/VoteWidget";
 import { CommentSection } from "./CommentSection";
 import { PostActions } from "./PostActions";
+import { timeAgo } from "@/lib/text";
 import styles from "./PostDetail.module.css";
 
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://127.0.0.1:8001";
@@ -34,17 +35,6 @@ async function getPost(id: string): Promise<PostData | null> {
   });
   if (!res.ok) return null;
   return res.json();
-}
-
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
 }
 
 export default async function PostDetailPage({
