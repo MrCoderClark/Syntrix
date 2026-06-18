@@ -12,7 +12,11 @@ interface UserInfo {
   avatar_url: string | null;
 }
 
-export function Topbar() {
+interface TopbarProps {
+  onMenuToggle?: () => void;
+}
+
+export function Topbar({ onMenuToggle }: TopbarProps) {
   const pathname = usePathname();
   const [user, setUser] = useState<UserInfo | null>(null);
 
@@ -37,6 +41,20 @@ export function Topbar() {
 
   return (
     <div className={styles.topbar}>
+      <button
+        className={styles.hamburger}
+        onClick={onMenuToggle}
+        aria-label="Toggle menu"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M3 5h14M3 10h14M3 15h14"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
       <div className={styles.search}>
         <SearchIcon size={16} style={{ color: "var(--ink-faint)" }} />
         <input

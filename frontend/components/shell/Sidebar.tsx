@@ -21,7 +21,12 @@ const NAV_ITEMS = [
   { icon: <UserIcon />, label: "My profile", href: "/settings/profile" },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [communities, setCommunities] = useState<CommunityItem[]>([]);
 
@@ -33,7 +38,9 @@ export function Sidebar() {
   }, []);
 
   return (
-    <aside className={styles.sidebar}>
+    <aside
+      className={`${styles.sidebar}${mobileOpen ? ` ${styles.mobileOpen}` : ""}`}
+    >
       <div className={styles.wordmarkWrap}>
         <Wordmark />
       </div>
@@ -50,6 +57,7 @@ export function Sidebar() {
               <Link
                 href={item.href}
                 className={`${styles.navItem}${active ? ` ${styles.active}` : ""}`}
+                onClick={onClose}
               >
                 <span className={styles.icon}>{item.icon}</span>
                 <span>{item.label}</span>
@@ -68,6 +76,7 @@ export function Sidebar() {
               <Link
                 href={`/c/${c.slug}`}
                 className={`${styles.communityItem}${active ? ` ${styles.activeCommunity}` : ""}`}
+                onClick={onClose}
               >
                 <span
                   className={styles.communityDot}
@@ -81,7 +90,11 @@ export function Sidebar() {
         })}
         {communities.length === 0 && (
           <li>
-            <Link href="/communities" className={styles.communityItem}>
+            <Link
+              href="/communities"
+              className={styles.communityItem}
+              onClick={onClose}
+            >
               <span
                 className={styles.communityDot}
                 style={{ background: "var(--ink-faint)" }}

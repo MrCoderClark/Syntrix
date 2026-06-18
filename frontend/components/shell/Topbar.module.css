@@ -52,9 +52,30 @@
   opacity: 0.9;
 }
 
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-xs);
+  transition: background var(--duration-fast) ease;
+}
+
+.hamburger:hover {
+  background: var(--paper-warm);
+}
+
 @media (max-width: 768px) {
   .search {
     display: none;
+  }
+
+  .hamburger {
+    display: flex;
   }
 
   .topbar {

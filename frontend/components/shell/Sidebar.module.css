@@ -124,6 +124,17 @@
 
 @media (max-width: 768px) {
   .sidebar {
-    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    width: var(--sidebar-width);
+    background: var(--paper);
+    transform: translateX(-100%);
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+
+  .mobileOpen {
+    transform: translateX(0);
   }
 }
