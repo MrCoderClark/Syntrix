@@ -17,6 +17,8 @@ export const Iframe = Node.create<IframeOptions>({
   name: "iframe",
   group: "block",
   atom: true,
+  selectable: true,
+  draggable: true,
 
   addOptions() {
     return {
@@ -45,6 +47,33 @@ export const Iframe = Node.create<IframeOptions>({
       { class: "iframe-wrapper" },
       ["iframe", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)],
     ];
+  },
+
+  addNodeView() {
+    return ({ node }) => {
+      const wrapper = document.createElement("div");
+      wrapper.classList.add("iframe-placeholder");
+
+      const icon = document.createElement("span");
+      icon.classList.add("iframe-placeholder-icon");
+      icon.textContent = "▶";
+      wrapper.appendChild(icon);
+
+      const url = document.createElement("span");
+      url.classList.add("iframe-placeholder-url");
+      url.textContent = node.attrs.src || "No URL";
+      wrapper.appendChild(url);
+
+      return {
+        dom: wrapper,
+        selectNode() {
+          wrapper.classList.add("selected");
+        },
+        deselectNode() {
+          wrapper.classList.remove("selected");
+        },
+      };
+    };
   },
 
   addCommands() {
