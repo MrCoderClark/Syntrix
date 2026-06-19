@@ -12,6 +12,14 @@ interface CommunityBrief {
   color: string;
 }
 
+interface ProfileBadge {
+  slug: string;
+  name: string;
+  icon: string | null;
+  tier: string;
+  awarded_at: string;
+}
+
 interface Profile {
   id: string;
   handle: string;
@@ -26,6 +34,8 @@ interface Profile {
   post_count: number;
   comment_count: number;
   karma: number;
+  reputation: number;
+  badges: ProfileBadge[];
   communities: CommunityBrief[];
   created_at: string;
 }
@@ -99,10 +109,29 @@ export default async function ProfilePage({
           <span className={styles.statLabel}>Karma</span>
         </div>
         <div className={styles.stat}>
+          <span className={styles.statValue}>{profile.reputation}</span>
+          <span className={styles.statLabel}>Reputation</span>
+        </div>
+        <div className={styles.stat}>
           <span className={styles.statValue}>{profile.communities.length}</span>
           <span className={styles.statLabel}>Communities</span>
         </div>
       </div>
+
+      {profile.badges.length > 0 && (
+        <div className={styles.badgeRow}>
+          {profile.badges.map((b) => (
+            <span
+              key={b.slug}
+              className={`${styles.badge} ${styles[`badge_${b.tier}`]}`}
+              title={b.name}
+            >
+              {b.icon && <span className={styles.badgeIcon}>{b.icon}</span>}
+              {b.name}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className={styles.meta}>
         {hasSocial && (

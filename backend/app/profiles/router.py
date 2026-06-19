@@ -12,8 +12,10 @@ from app.models import User
 from app.models.comment import Comment
 from app.models.community import Community, CommunityMembership
 from app.models.post import Post
+from app.models.reputation import Badge, UserBadge
 from app.profiles.schemas import (
     CommunityBrief,
+    ProfileBadge,
     ProfileResponse,
     ProfileUpdateRequest,
     UserActivityResponse,
@@ -56,13 +58,26 @@ async def _build_profile(user: User, session: AsyncSession) -> ProfileResponse:
         )
         .order_by(Community.name)
     )
+    badges_q = (
+        select(
+            Badge.slug,
+            Badge.name,
+            Badge.icon,
+            Badge.tier,
+            UserBadge.awarded_at,
+        )
+        .join(Badge, UserBadge.badge_id == Badge.id)
+        .where(UserBadge.user_id == user.id)
+        .order_by(UserBadge.awarded_at.desc())
+    )
 
-    pc, cc, pk, ck, comms = await asyncio.gather(
+    pc, cc, pk, ck, comms, badges_rows = await asyncio.gather(
         _scalar(session, post_count_q),
         _scalar(session, comment_count_q),
         _scalar(session, post_karma_q),
         _scalar(session, comment_karma_q),
         session.execute(communities_q),
+        session.execute(badges_q),
     )
 
     return ProfileResponse(
@@ -79,6 +94,17 @@ async def _build_profile(user: User, session: AsyncSession) -> ProfileResponse:
         post_count=pc,
         comment_count=cc,
         karma=pk + ck,
+        reputation=user.reputation,
+        badges=[
+            ProfileBadge(
+                slug=r.slug,
+                name=r.name,
+                icon=r.icon,
+                tier=r.tier,
+                awarded_at=r.awarded_at,
+            )
+            for r in badges_rows
+        ],
         communities=[CommunityBrief(slug=r.slug, name=r.name, color=r.color) for r in comms],
         created_at=user.created_at,
     )

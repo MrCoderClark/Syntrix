@@ -12,6 +12,7 @@ from app.auth.deps import CurrentUser
 from app.db.session import get_session
 from app.models import Answer, AnswerVote, CommunityMembership, Post, User
 from app.posts.renderer import render_tiptap_json
+from app.reputation.engine import award_rep
 from app.votes.schemas import VoteRequest, VoteResponse
 
 from .schemas import (
@@ -87,6 +88,10 @@ async def create_answer(
     post.answer_count = post.answer_count + 1
     await session.flush()
     await session.refresh(answer)
+
+    from app.reputation.badges import check_badges
+
+    await check_badges(session, user.id)
 
     return _answer_response(answer, author=user)
 
@@ -218,6 +223,11 @@ async def accept_answer(
     answer.accepted_at = datetime.now(UTC)
     post.has_accepted_answer = True
 
+    if answer.author_id:
+        await award_rep(session, answer.author_id, "answer_accepted", answer.id)
+    if post.author_id:
+        await award_rep(session, post.author_id, "accept_answer", answer.id)
+
     await session.flush()
     return {"status": "accepted"}
 
@@ -244,6 +254,23 @@ async def unaccept_answer(
     answer.is_accepted = False
     answer.accepted_at = None
     post.has_accepted_answer = False
+
+    if answer.author_id:
+        await award_rep(
+            session,
+            answer.author_id,
+            "answer_accepted",
+            answer.id,
+            reverse=True,
+        )
+    if post.author_id:
+        await award_rep(
+            session,
+            post.author_id,
+            "accept_answer",
+            answer.id,
+            reverse=True,
+        )
 
     await session.flush()
     return {"status": "unaccepted"}
@@ -274,6 +301,13 @@ async def vote_answer(
     if not membership or membership.banned_at:
         raise HTTPException(status_code=403, detail="Must be a member to vote")
 
+    old_vote_q = select(AnswerVote.value).where(
+        AnswerVote.user_id == user.id,
+        AnswerVote.answer_id == answer_id,
+    )
+    old_result = await session.execute(old_vote_q)
+    old_val = old_result.scalar_one_or_none()
+
     if value == 0:
         await session.execute(
             delete(AnswerVote).where(
@@ -293,6 +327,51 @@ async def vote_answer(
             set_={"value": value},
         )
         await session.execute(stmt)
+
+    if answer.author_id:
+        if old_val == 1:
+            await award_rep(
+                session,
+                answer.author_id,
+                "answer_upvoted",
+                answer.id,
+                reverse=True,
+            )
+        elif old_val == -1:
+            await award_rep(
+                session,
+                answer.author_id,
+                "answer_downvoted",
+                answer.id,
+                reverse=True,
+            )
+            await award_rep(
+                session,
+                user.id,
+                "downvote_answer_cost",
+                answer.id,
+                reverse=True,
+            )
+        if value == 1:
+            await award_rep(
+                session,
+                answer.author_id,
+                "answer_upvoted",
+                answer.id,
+            )
+        elif value == -1:
+            await award_rep(
+                session,
+                answer.author_id,
+                "answer_downvoted",
+                answer.id,
+            )
+            await award_rep(
+                session,
+                user.id,
+                "downvote_answer_cost",
+                answer.id,
+            )
 
     await session.flush()
     await session.refresh(answer)
