@@ -78,7 +78,7 @@ export function ProfileTabs({ handle }: { handle: string }) {
             posts.items.map((p) => (
               <Link
                 key={p.id}
-                href={`/c/${p.community_slug}/${p.id}`}
+                href={`/c/${p.community_slug}/post/${p.id}`}
                 className={styles.card}
               >
                 <div className={styles.cardTop}>
@@ -107,7 +107,7 @@ export function ProfileTabs({ handle }: { handle: string }) {
             comments.items.map((c) => (
               <Link
                 key={c.id}
-                href={`/c/${c.community_slug}/${c.post_id}`}
+                href={`/c/${c.community_slug}/post/${c.post_id}`}
                 className={styles.card}
               >
                 <div className={styles.cardTop}>
