@@ -7,15 +7,14 @@ polish step.
 
 ## Start here — current state
 
-Phase 1 **implementation is underway**. The full spec lives in `PRD.md`. All
-design artifacts are archived under `docs/superpowers/mockups/` as HTML +
-retina PNG. Implementation plans (1–10) live in `.agent/plans/`.
+Phase 1 is **complete**. Phase 2 (Q&A Layer) is **in progress**. The full
+spec lives in `PRD.md`. All design artifacts are archived under
+`docs/superpowers/mockups/` as HTML + retina PNG. Implementation plans
+(1–17) live in `.agent/plans/`.
 
-**Completed sections:** 01 (scaffold), 02 (database foundation),
-03 (design system), 04 (auth), 05 (profiles).
-**Current section:** 06 (`feat/communities`) — list, landing, join/leave,
-request + admin approval.
-**Next section:** 07 (`feat/storage`).
+**Completed sections:** 01–16 (scaffold through Q&A posts), 17 (reputation).
+**Current section:** 17 (`feat/reputation`) — awaiting merge.
+**Next section:** 18 (`feat/markdown-polish`).
 
 See `PROGRESS.md` for the full section checklist and current status.
 

@@ -5,11 +5,12 @@ Track build progress through Syntrix. Update this file as sections complete
 
 ## Current state — read this first
 
-> **Phase 2 is in progress.** Tags, video embeds, and Q&A post type
-> (with answers, voting, and accept flow) are merged.
+> **Phase 2 is in progress.** Tags, video embeds, Q&A post type, and
+> reputation + badges are built. Section 17 awaiting merge.
 >
-> **Current branch:** `main`
-> **Next action:** plan and build Section 17 (`feat/reputation`).
+> **Current branch:** `feat/reputation`
+> **Next action:** merge `feat/reputation`, then plan Section 18
+> (`feat/markdown-polish`).
 
 ## Convention
 - `[ ]` = Not started
@@ -44,7 +45,7 @@ by the writing-plans skill after the spec is approved.
 | 14 | `[x]` | `feat/video-embed` | TipTap video embed node (YouTube, Vimeo, Twitch) |
 | 15 | `[x]` | `feat/tags` | Community-scoped tags, CRUD, tag picker, tag pages |
 | 16 | `[x]` | `feat/qa-posts` | Question post type, answers, voting, accept flow, feed filters |
-| 17 | `[ ]` | `feat/reputation` | Rep events, badges, awarding logic, profile display, privilege gates |
+| 17 | `[-]` | `feat/reputation` | Rep events, badges, awarding logic, profile display |
 | 18 | `[ ]` | `feat/markdown-polish` | Shiki code blocks, KaTeX math, Mermaid diagrams |
 | 19 | `[ ]` | `feat/duplicate-detection` | Similar-question suggestions during ask, mark-as-duplicate |
 
