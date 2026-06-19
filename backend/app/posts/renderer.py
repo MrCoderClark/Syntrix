@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import json
+import re
+import subprocess
 from html import escape
+from pathlib import Path
 from urllib.parse import urlparse
 
 from pygments import highlight as pygments_highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import TextLexer, get_lexer_by_name
 from pygments.util import ClassNotFound
+
+_KATEX_SCRIPT = Path(__file__).resolve().parents[3] / "scripts" / "render-katex.mjs"
 
 ALLOWED_IFRAME_HOSTS = {
     "www.youtube.com",
@@ -46,14 +52,107 @@ def _extract_text(nodes: list[dict]) -> str:
     return "".join(parts)
 
 
+_MATH_BLOCK = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
+_MATH_INLINE = re.compile(r"(?<!\$)\$(?!\$)(.+?)(?<!\$)\$(?!\$)")
+_ESCAPED_DOLLAR = re.compile(r"\\\$")
+
+
+def _parse_math(text: str) -> list[dict]:
+    """Find all math expressions in text, return list of {latex, displayMode, start, end}."""
+    placeholder = "\x00ESCAPED_DOLLAR\x00"
+    working = _ESCAPED_DOLLAR.sub(placeholder, text)
+
+    spans: list[dict] = []
+    for m in _MATH_BLOCK.finditer(working):
+        spans.append(
+            {
+                "latex": m.group(1).strip(),
+                "displayMode": True,
+                "start": m.start(),
+                "end": m.end(),
+            }
+        )
+    for m in _MATH_INLINE.finditer(working):
+        if any(s["start"] <= m.start() < s["end"] for s in spans):
+            continue
+        spans.append(
+            {
+                "latex": m.group(1).strip(),
+                "displayMode": False,
+                "start": m.start(),
+                "end": m.end(),
+            }
+        )
+    spans.sort(key=lambda s: s["start"])
+    return spans
+
+
+def _render_math_batch(expressions: list[dict]) -> list[str]:
+    """Call the Node KaTeX helper to batch-render math expressions."""
+    if not expressions:
+        return []
+    payload = json.dumps(
+        [{"latex": e["latex"], "displayMode": e["displayMode"]} for e in expressions]
+    )
+    try:
+        result = subprocess.run(  # noqa: S603
+            ["node", str(_KATEX_SCRIPT)],  # noqa: S607
+            input=payload,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode != 0:
+            return [f'<code class="math-error">{escape(e["latex"])}</code>' for e in expressions]
+        items = json.loads(result.stdout)
+        rendered: list[str] = []
+        for item, expr in zip(items, expressions, strict=False):
+            if item.get("error") or not item.get("html"):
+                rendered.append(f'<code class="math-error">{escape(expr["latex"])}</code>')
+            elif expr["displayMode"]:
+                rendered.append(f'<div class="math-block">{item["html"]}</div>')
+            else:
+                rendered.append(item["html"])
+        return rendered
+    except (subprocess.TimeoutExpired, FileNotFoundError, json.JSONDecodeError):
+        return [f'<code class="math-error">{escape(e["latex"])}</code>' for e in expressions]
+
+
+def _apply_math_to_text(text: str) -> str:
+    """Replace $...$ and $$...$$ in a plain text string with rendered KaTeX HTML."""
+    placeholder = "\x00ESCAPED_DOLLAR\x00"
+    working = _ESCAPED_DOLLAR.sub(placeholder, text)
+
+    spans = _parse_math(text)
+    if not spans:
+        return escape(working).replace(placeholder, "$")
+
+    rendered = _render_math_batch(spans)
+
+    parts: list[str] = []
+    prev_end = 0
+    for span, html in zip(spans, rendered, strict=False):
+        parts.append(escape(working[prev_end : span["start"]]))
+        parts.append(html)
+        prev_end = span["end"]
+    parts.append(escape(working[prev_end:]))
+
+    result = "".join(parts)
+    return result.replace(placeholder, "$")
+
+
 def _render_node(node: dict) -> str:
     t = node.get("type", "")
     attrs = node.get("attrs", {})
     content = node.get("content", [])
 
     if t == "text":
-        text = escape(node.get("text", ""))
-        for mark in node.get("marks", []):
+        raw = node.get("text", "")
+        marks = node.get("marks", [])
+        if not marks:
+            return _apply_math_to_text(raw)
+        text = escape(raw)
+        for mark in marks:
             text = _apply_mark(text, mark)
         return text
 

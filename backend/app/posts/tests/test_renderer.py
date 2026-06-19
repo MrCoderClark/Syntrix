@@ -237,3 +237,68 @@ def test_iframe_blocked_host():
     assert "<iframe" not in html
     assert "<a " in html
     assert "evil.com/exploit" in html
+
+
+def test_inline_math():
+    """$x^2$ should render to KaTeX HTML."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "The formula $x^2$ is simple."}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "katex" in html.lower() or "math" in html.lower()
+    assert "$x^2$" not in html
+    assert "The formula" in html
+    assert "is simple." in html
+
+
+def test_block_math():
+    """$$...$$  should render as display math."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "$$\\sum_{i=1}^{n} i$$"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "math-block" in html
+    assert "$$" not in html
+
+
+def test_escaped_dollar():
+    r"""Escaped \$ should render as literal $."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": r"Price is \$5."}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "$5" in html
+    assert "katex" not in html.lower()
+
+
+def test_math_bad_latex():
+    """Invalid LaTeX should render as error code block, not crash."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "$\\invalid{$"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "math-error" in html or "katex" in html.lower()
