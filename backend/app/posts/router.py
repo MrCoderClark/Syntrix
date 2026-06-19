@@ -144,6 +144,11 @@ async def create_post(
                 PostTagResponse(id=str(tag.id), slug=tag.slug, name=tag.name, color=tag.color)
             )
 
+    if body.post_type == "question":
+        from app.reputation.badges import check_badges
+
+        await check_badges(session, user.id)
+
     return _post_response(post, author=user, community=community, tags=tag_responses)
 
 

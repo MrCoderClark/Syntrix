@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.deps import CurrentUser
 from app.db.session import get_session
 from app.models import Comment, CommentVote, CommunityMembership, Post, PostVote
+from app.reputation.engine import award_rep
 
 from .schemas import VoteRequest, VoteResponse
 
@@ -42,6 +43,13 @@ async def vote_post(
     if not mem or mem.banned_at:
         raise HTTPException(status_code=403, detail="Must be a member to vote")
 
+    old_vote_q = select(PostVote.value).where(
+        PostVote.user_id == user.id,
+        PostVote.post_id == post_id,
+    )
+    old_result = await session.execute(old_vote_q)
+    old_val = old_result.scalar_one_or_none()
+
     if body.value == 0:
         await session.execute(
             delete(PostVote).where(
@@ -61,6 +69,38 @@ async def vote_post(
             set_={"value": body.value},
         )
         await session.execute(stmt)
+
+    if post.post_type == "question" and post.author_id:
+        if old_val == 1:
+            await award_rep(
+                session,
+                post.author_id,
+                "question_upvoted",
+                post.id,
+                reverse=True,
+            )
+        elif old_val == -1:
+            await award_rep(
+                session,
+                post.author_id,
+                "question_downvoted",
+                post.id,
+                reverse=True,
+            )
+        if body.value == 1:
+            await award_rep(
+                session,
+                post.author_id,
+                "question_upvoted",
+                post.id,
+            )
+        elif body.value == -1:
+            await award_rep(
+                session,
+                post.author_id,
+                "question_downvoted",
+                post.id,
+            )
 
     await session.flush()
     await session.refresh(post)
