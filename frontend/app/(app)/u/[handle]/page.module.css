@@ -184,6 +184,46 @@
   flex-shrink: 0;
 }
 
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  border: 1px solid;
+}
+
+.badgeIcon {
+  font-size: 13px;
+}
+
+.badge_bronze {
+  color: #92400e;
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.badge_silver {
+  color: #374151;
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.badge_gold {
+  color: #78350f;
+  background: #fef9c3;
+  border-color: #eab308;
+}
+
 @media (max-width: 640px) {
   .header {
     gap: 16px;
