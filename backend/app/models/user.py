@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Text, func
+from sqlalchemy import DateTime, Integer, Text, func, text
 from sqlalchemy.dialects.postgresql import CITEXT, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -27,6 +27,7 @@ class User(Base):
     github_username: Mapped[str | None] = mapped_column(Text)
     discord_username: Mapped[str | None] = mapped_column(Text)
     website_url: Mapped[str | None] = mapped_column(Text)
+    reputation: Mapped[int] = mapped_column(Integer, server_default=text("0"), nullable=False)
     role: Mapped[str] = mapped_column(Text, nullable=False, default="member")
     suspended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(

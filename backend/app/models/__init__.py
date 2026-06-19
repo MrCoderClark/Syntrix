@@ -5,6 +5,7 @@ from app.models.oauth_identity import OAuthIdentity
 from app.models.post import Post, PostAttachment
 from app.models.rate_limit import RateLimitBucket
 from app.models.refresh_token import RefreshToken
+from app.models.reputation import Badge, ReputationEvent, UserBadge
 from app.models.tag import QuestionTag, Tag
 from app.models.user import User
 from app.models.vote import CommentVote, PostVote
@@ -12,6 +13,7 @@ from app.models.vote import CommentVote, PostVote
 __all__ = [
     "Answer",
     "AnswerVote",
+    "Badge",
     "Comment",
     "CommentVote",
     "Community",
@@ -24,6 +26,8 @@ __all__ = [
     "QuestionTag",
     "RateLimitBucket",
     "RefreshToken",
+    "ReputationEvent",
     "Tag",
     "User",
+    "UserBadge",
 ]
