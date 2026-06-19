@@ -145,3 +145,93 @@ async def test_badge_awarded_on_first_answer(db_conn: AsyncConnection, db_sessio
         resp = await client.get(f"/api/users/{user['handle']}/reputation")
     data = resp.json()
     assert any(b["badge"]["slug"] == "first-answer" for b in data["badges"])
+
+
+@pytest.mark.asyncio
+async def test_answer_vote_awards_rep_via_api(
+    db_conn: AsyncConnection,
+):
+    admin = await _seed_user(db_conn, role="admin")
+    author = await _seed_user(db_conn)
+    answerer = await _seed_user(db_conn)
+    voter = await _seed_user(db_conn)
+
+    comm_id = uuid.uuid4()
+    comm_slug = f"rc_{uuid.uuid4().hex[:6]}"
+    await db_conn.execute(
+        text(
+            "INSERT INTO syntrix.communities "
+            "(id, name, slug, description, color, owner_id) "
+            "VALUES (:id, :n, :s, :d, :c, :oid)"
+        ),
+        {
+            "id": comm_id,
+            "n": "RepComm",
+            "s": comm_slug,
+            "d": "test",
+            "c": "#000",
+            "oid": admin["id"],
+        },
+    )
+    for u in [author, answerer, voter]:
+        await db_conn.execute(
+            text(
+                "INSERT INTO syntrix.community_memberships "
+                "(community_id, user_id, role) "
+                "VALUES (:cid, :uid, 'member')"
+            ),
+            {"cid": comm_id, "uid": u["id"]},
+        )
+    await db_conn.commit()
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Author creates a question
+        q_resp = await client.post(
+            "/api/posts",
+            json={
+                "community_id": str(comm_id),
+                "title": "Rep test question?",
+                "body_json": {"type": "doc", "content": []},
+                "post_type": "question",
+            },
+            cookies={"access_token": author["token"]},
+        )
+        assert q_resp.status_code == 201, q_resp.text
+        q_id = q_resp.json()["id"]
+
+        # Answerer posts an answer
+        a_resp = await client.post(
+            f"/api/posts/{q_id}/answers",
+            json={
+                "body_json": {"type": "doc", "content": []},
+            },
+            cookies={"access_token": answerer["token"]},
+        )
+        assert a_resp.status_code == 201, a_resp.text
+        a_id = a_resp.json()["id"]
+
+        # Voter upvotes the answer
+        v_resp = await client.post(
+            f"/api/answers/{a_id}/vote",
+            json={"value": 1},
+            cookies={"access_token": voter["token"]},
+        )
+        assert v_resp.status_code == 200, v_resp.text
+
+        # Check answerer's reputation
+        rep_resp = await client.get(f"/api/users/{answerer['handle']}/reputation")
+        assert rep_resp.status_code == 200
+        assert rep_resp.json()["reputation"] == 10
+
+        # Voter unvotes
+        v_resp2 = await client.post(
+            f"/api/answers/{a_id}/vote",
+            json={"value": 0},
+            cookies={"access_token": voter["token"]},
+        )
+        assert v_resp2.status_code == 200
+
+        # Reputation back to 0
+        rep_resp2 = await client.get(f"/api/users/{answerer['handle']}/reputation")
+        assert rep_resp2.json()["reputation"] == 0
