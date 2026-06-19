@@ -5,12 +5,11 @@ Track build progress through Syntrix. Update this file as sections complete
 
 ## Current state — read this first
 
-> **Phase 1 is feature-complete + polished.** All 10 core sections plus
-> polish, user menu/search, and enhanced profiles merged to `main`.
+> **Phase 2 is in progress.** Tags, video embeds, and Q&A post type
+> (with answers, voting, and accept flow) are merged.
 >
 > **Current branch:** `main`
-> **Next action:** decide what's next — Phase 2 planning, or additional
-> Phase 1 enhancements.
+> **Next action:** plan and build Section 17 (`feat/reputation`).
 
 ## Convention
 - `[ ]` = Not started
@@ -40,7 +39,14 @@ by the writing-plans skill after the spec is approved.
 
 ## Phase 2 — Q&A Layer
 
-*Not yet planned.*
+| # | Status | Branch | Ships |
+|---|---|---|---|
+| 14 | `[x]` | `feat/video-embed` | TipTap video embed node (YouTube, Vimeo, Twitch) |
+| 15 | `[x]` | `feat/tags` | Community-scoped tags, CRUD, tag picker, tag pages |
+| 16 | `[x]` | `feat/qa-posts` | Question post type, answers, voting, accept flow, feed filters |
+| 17 | `[ ]` | `feat/reputation` | Rep events, badges, awarding logic, profile display, privilege gates |
+| 18 | `[ ]` | `feat/markdown-polish` | Shiki code blocks, KaTeX math, Mermaid diagrams |
+| 19 | `[ ]` | `feat/duplicate-detection` | Similar-question suggestions during ask, mark-as-duplicate |
 
 ## Phase 3 — Real-time Chat
 
