@@ -3,6 +3,11 @@ from __future__ import annotations
 from html import escape
 from urllib.parse import urlparse
 
+from pygments import highlight as pygments_highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import TextLexer, get_lexer_by_name
+from pygments.util import ClassNotFound
+
 ALLOWED_IFRAME_HOSTS = {
     "www.youtube.com",
     "youtube.com",
@@ -30,6 +35,17 @@ def _render_nodes(nodes: list[dict]) -> str:
     return "".join(_render_node(n) for n in nodes)
 
 
+def _extract_text(nodes: list[dict]) -> str:
+    """Extract raw text from TipTap content nodes (used for code blocks)."""
+    parts: list[str] = []
+    for node in nodes:
+        if node.get("type") == "text":
+            parts.append(node.get("text", ""))
+        elif "content" in node:
+            parts.append(_extract_text(node["content"]))
+    return "".join(parts)
+
+
 def _render_node(node: dict) -> str:
     t = node.get("type", "")
     attrs = node.get("attrs", {})
@@ -52,10 +68,15 @@ def _render_node(node: dict) -> str:
         return f"<blockquote>{_render_nodes(content)}</blockquote>"
 
     if t == "codeBlock":
-        lang = escape(attrs.get("language", "")) if attrs.get("language") else ""
-        code = _render_nodes(content)
-        cls = f' class="language-{lang}"' if lang else ""
-        return f"<pre><code{cls}>{code}</code></pre>"
+        lang = attrs.get("language", "") or ""
+        code_text = _extract_text(content)
+        try:
+            lexer = get_lexer_by_name(lang) if lang else TextLexer()
+        except ClassNotFound:
+            lexer = TextLexer()
+        formatter = HtmlFormatter(nowrap=True)
+        highlighted = pygments_highlight(code_text, lexer, formatter)
+        return f'<pre class="highlight"><code>{highlighted}</code></pre>'
 
     if t == "bulletList":
         return f"<ul>{_render_nodes(content)}</ul>"

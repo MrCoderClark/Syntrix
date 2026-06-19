@@ -53,9 +53,77 @@ def test_code_block():
         ],
     }
     html = render_tiptap_json(doc)
-    assert "<pre>" in html
-    assert 'class="language-python"' in html
-    assert "print(" in html
+    assert '<pre class="highlight">' in html
+    assert "print" in html
+
+
+def test_code_block_highlighted():
+    """Pygments should produce span tokens for known languages."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {"language": "python"},
+                "content": [{"type": "text", "text": "def hello():\n    pass"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert '<pre class="highlight">' in html
+    assert "<span" in html
+    assert "def" in html
+    assert "hello" in html
+
+
+def test_code_block_unknown_language():
+    """Unknown languages fall back to plain text, no crash."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {"language": "notareallang"},
+                "content": [{"type": "text", "text": "some code"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert '<pre class="highlight">' in html
+    assert "some code" in html
+
+
+def test_code_block_no_language():
+    """Code blocks with no language get plain rendering."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {},
+                "content": [{"type": "text", "text": "plain text"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert '<pre class="highlight">' in html
+    assert "plain text" in html
+
+
+def test_code_block_xss_in_language():
+    """Language attr with XSS payload must not inject HTML."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {"language": '"><script>alert(1)</script>'},
+                "content": [{"type": "text", "text": "x"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "<script>" not in html
 
 
 def test_image():
