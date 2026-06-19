@@ -16,6 +16,14 @@ class CommunityBrief(BaseModel):
     color: str
 
 
+class ProfileBadge(BaseModel):
+    slug: str
+    name: str
+    icon: str | None
+    tier: str
+    awarded_at: datetime
+
+
 class ProfileResponse(BaseModel):
     id: str
     handle: str
@@ -30,6 +38,8 @@ class ProfileResponse(BaseModel):
     post_count: int
     comment_count: int
     karma: int
+    reputation: int
+    badges: list[ProfileBadge]
     communities: list[CommunityBrief]
     created_at: datetime
 
