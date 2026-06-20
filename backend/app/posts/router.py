@@ -385,13 +385,14 @@ async def mark_duplicate(
         raise HTTPException(status_code=404, detail="Post not found")
     if post.post_type != "question":
         raise HTTPException(status_code=400, detail="Only questions can be marked as duplicates")
+
+    if not await _can_mark_duplicate(session, user, post):
+        raise HTTPException(status_code=403, detail="Insufficient permissions to mark duplicates")
+
     if post.id == body.duplicate_of_id:
         raise HTTPException(
             status_code=400, detail="Cannot mark a question as a duplicate of itself"
         )
-
-    if not await _can_mark_duplicate(session, user, post):
-        raise HTTPException(status_code=403, detail="Insufficient permissions to mark duplicates")
 
     target = await session.get(Post, body.duplicate_of_id)
     if not target or target.deleted_at:
@@ -422,6 +423,8 @@ async def unmark_duplicate(
     post = await session.get(Post, post_id)
     if not post or post.deleted_at:
         raise HTTPException(status_code=404, detail="Post not found")
+    if post.post_type != "question":
+        raise HTTPException(status_code=400, detail="Only questions can be unmarked as duplicates")
 
     if not await _can_mark_duplicate(session, user, post):
         raise HTTPException(status_code=403, detail="Insufficient permissions to unmark duplicates")
