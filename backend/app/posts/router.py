@@ -14,6 +14,7 @@ from app.posts.renderer import render_tiptap_json
 
 from .schemas import (
     CreatePostRequest,
+    MarkDuplicateRequest,
     PostListResponse,
     PostResponse,
     PostTagResponse,
@@ -32,6 +33,7 @@ def _post_response(
     author: User | None = None,
     community: Community | None = None,
     tags: list[PostTagResponse] | None = None,
+    duplicate_of_title: str | None = None,
 ) -> PostResponse:
     return PostResponse(
         id=post.id,
@@ -51,6 +53,8 @@ def _post_response(
         post_type=post.post_type,
         answer_count=post.answer_count,
         has_accepted_answer=post.has_accepted_answer,
+        duplicate_of_id=post.duplicate_of_id,
+        duplicate_of_title=duplicate_of_title,
         tags=tags or [],
         deleted_at=post.deleted_at,
         removed_at=post.removed_at,
@@ -178,7 +182,13 @@ async def get_post(
     community = await session.get(Community, post.community_id)
 
     tags = await _load_post_tags(session, post.id) if post.post_type == "question" else []
-    return _post_response(post, author=author, community=community, tags=tags)
+    duplicate_of_title = None
+    if post.duplicate_of_id:
+        dup_target = await session.get(Post, post.duplicate_of_id)
+        duplicate_of_title = dup_target.title if dup_target else None
+    return _post_response(
+        post, author=author, community=community, tags=tags, duplicate_of_title=duplicate_of_title
+    )
 
 
 @router.patch("/{post_id}", response_model=PostResponse)
@@ -344,3 +354,83 @@ async def list_community_posts(
         next_cursor = posts[-1].created_at.isoformat()
 
     return PostListResponse(posts=posts, next_cursor=next_cursor)
+
+
+REP_THRESHOLD_DUPLICATE = 500
+
+
+async def _can_mark_duplicate(session: AsyncSession, user: User, post: Post) -> bool:
+    """Check if user can mark/unmark duplicates in this post's community."""
+    if user.role == "admin":
+        return True
+    membership = await _get_membership(session, post.community_id, user.id)
+    if not membership or membership.banned_at:
+        return False
+    if membership.role in ("mod", "owner"):
+        return True
+    if user.reputation >= REP_THRESHOLD_DUPLICATE:
+        return True
+    return False
+
+
+@router.post("/{post_id}/mark-duplicate", response_model=PostResponse)
+async def mark_duplicate(
+    post_id: uuid.UUID,
+    body: MarkDuplicateRequest,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+):
+    post = await session.get(Post, post_id)
+    if not post or post.deleted_at:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if post.post_type != "question":
+        raise HTTPException(status_code=400, detail="Only questions can be marked as duplicates")
+    if post.id == body.duplicate_of_id:
+        raise HTTPException(
+            status_code=400, detail="Cannot mark a question as a duplicate of itself"
+        )
+
+    if not await _can_mark_duplicate(session, user, post):
+        raise HTTPException(status_code=403, detail="Insufficient permissions to mark duplicates")
+
+    target = await session.get(Post, body.duplicate_of_id)
+    if not target or target.deleted_at:
+        raise HTTPException(status_code=404, detail="Target question not found")
+    if target.community_id != post.community_id:
+        raise HTTPException(status_code=400, detail="Target must be in the same community")
+    if target.duplicate_of_id is not None:
+        raise HTTPException(status_code=400, detail="Cannot mark as duplicate of another duplicate")
+
+    post.duplicate_of_id = body.duplicate_of_id
+    await session.flush()
+    await session.refresh(post)
+
+    author = await session.get(User, post.author_id) if post.author_id else None
+    community = await session.get(Community, post.community_id)
+    tags = await _load_post_tags(session, post.id) if post.post_type == "question" else []
+    return _post_response(
+        post, author=author, community=community, tags=tags, duplicate_of_title=target.title
+    )
+
+
+@router.delete("/{post_id}/mark-duplicate", response_model=PostResponse)
+async def unmark_duplicate(
+    post_id: uuid.UUID,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+):
+    post = await session.get(Post, post_id)
+    if not post or post.deleted_at:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    if not await _can_mark_duplicate(session, user, post):
+        raise HTTPException(status_code=403, detail="Insufficient permissions to unmark duplicates")
+
+    post.duplicate_of_id = None
+    await session.flush()
+    await session.refresh(post)
+
+    author = await session.get(User, post.author_id) if post.author_id else None
+    community = await session.get(Community, post.community_id)
+    tags = await _load_post_tags(session, post.id) if post.post_type == "question" else []
+    return _post_response(post, author=author, community=community, tags=tags)
