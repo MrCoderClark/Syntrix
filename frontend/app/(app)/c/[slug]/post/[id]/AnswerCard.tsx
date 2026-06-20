@@ -6,6 +6,7 @@ import type { JSONContent } from "@tiptap/react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { VoteWidget } from "@/components/VoteWidget";
+import { RichContent } from "@/components/RichContent";
 import { SyntrixEditor } from "@/lib/editor/SyntrixEditor";
 import { timeAgo } from "@/lib/text";
 import styles from "./AnswerCard.module.css";
@@ -113,10 +114,7 @@ export function AnswerCard({
         )}
 
         {!answer.removed_at && !editing && (
-          <div
-            className={styles.body}
-            dangerouslySetInnerHTML={{ __html: answer.body_html }}
-          />
+          <RichContent html={answer.body_html} className={styles.body} />
         )}
 
         {editing && (

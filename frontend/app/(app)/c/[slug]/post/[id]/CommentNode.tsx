@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { JSONContent } from "@tiptap/react";
 import { Avatar } from "@/components/ui/Avatar";
 import { VoteWidget } from "@/components/VoteWidget";
+import { RichContent } from "@/components/RichContent";
 import { CommentEditor } from "@/lib/editor/CommentEditor";
 import { timeAgo } from "@/lib/text";
 import styles from "./Comments.module.css";
@@ -104,10 +105,7 @@ export function CommentNode({ comment, postId, onReplyPosted }: Props) {
           <span className={styles.time}>{timeAgo(comment.created_at)}</span>
         </div>
 
-        <div
-          className={styles.body}
-          dangerouslySetInnerHTML={{ __html: comment.body_html }}
-        />
+        <RichContent html={comment.body_html} className={styles.body} />
 
         {!isDeleted && !isRemoved && (
           <div className={styles.commentActions}>

@@ -53,9 +53,77 @@ def test_code_block():
         ],
     }
     html = render_tiptap_json(doc)
-    assert "<pre>" in html
-    assert 'class="language-python"' in html
-    assert "print(" in html
+    assert '<pre class="highlight">' in html
+    assert "print" in html
+
+
+def test_code_block_highlighted():
+    """Pygments should produce span tokens for known languages."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {"language": "python"},
+                "content": [{"type": "text", "text": "def hello():\n    pass"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert '<pre class="highlight">' in html
+    assert "<span" in html
+    assert "def" in html
+    assert "hello" in html
+
+
+def test_code_block_unknown_language():
+    """Unknown languages fall back to plain text, no crash."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {"language": "notareallang"},
+                "content": [{"type": "text", "text": "some code"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert '<pre class="highlight">' in html
+    assert "some code" in html
+
+
+def test_code_block_no_language():
+    """Code blocks with no language get plain rendering."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {},
+                "content": [{"type": "text", "text": "plain text"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert '<pre class="highlight">' in html
+    assert "plain text" in html
+
+
+def test_code_block_xss_in_language():
+    """Language attr with XSS payload must not inject HTML."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {"language": '"><script>alert(1)</script>'},
+                "content": [{"type": "text", "text": "x"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "<script>" not in html
 
 
 def test_image():
@@ -169,3 +237,86 @@ def test_iframe_blocked_host():
     assert "<iframe" not in html
     assert "<a " in html
     assert "evil.com/exploit" in html
+
+
+def test_inline_math():
+    """$x^2$ should render to KaTeX HTML."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "The formula $x^2$ is simple."}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "katex" in html.lower() or "math" in html.lower()
+    assert "$x^2$" not in html
+    assert "The formula" in html
+    assert "is simple." in html
+
+
+def test_block_math():
+    """$$...$$  should render as display math."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "$$\\sum_{i=1}^{n} i$$"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "math-block" in html
+    assert "$$" not in html
+
+
+def test_escaped_dollar():
+    r"""Escaped \$ should render as literal $."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": r"Price is \$5."}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "$5" in html
+    assert "katex" not in html.lower()
+
+
+def test_mermaid_code_block_passthrough():
+    """Mermaid code blocks should pass through as plain text with language-mermaid class."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {"language": "mermaid"},
+                "content": [{"type": "text", "text": "graph TD\n  A --> B"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert 'class="language-mermaid"' in html
+    assert "graph TD" in html
+    assert "A --&gt; B" in html
+
+
+def test_math_bad_latex():
+    """Invalid LaTeX should render as error code block, not crash."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [{"type": "text", "text": "$\\invalid{$"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert "math-error" in html or "katex" in html.lower()

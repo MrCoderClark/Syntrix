@@ -1,0 +1,8 @@
+{
+  "name": "syntrix-scripts",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "katex": "^0.16"
+  }
+}

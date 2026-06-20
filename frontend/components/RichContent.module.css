@@ -1,0 +1,30 @@
+.mermaidLoading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--ink-faint);
+  font-family: var(--font-mono-family);
+}
+
+.mermaidError {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--bad);
+  background: rgba(176, 59, 59, 0.08);
+  border-radius: var(--radius-xs);
+  margin-bottom: 4px;
+}
+
+.mermaidSvg {
+  display: flex;
+  justify-content: center;
+  margin: 0.6em 0;
+  overflow-x: auto;
+}
+
+.mermaidSvg :global(svg) {
+  max-width: 100%;
+  height: auto;
+}
