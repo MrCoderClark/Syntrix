@@ -56,6 +56,12 @@ export default function SubmitPostPage() {
       .catch(() => {});
   }, [params.slug]);
 
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   const fetchTitleSuggestions = useCallback(
     async (query: string) => {
       if (query.length < 10 || postType !== "question") {
@@ -290,9 +296,9 @@ export default function SubmitPostPage() {
               </Button>
               <Button
                 variant="primary"
-                onClick={() => {
+                onClick={async () => {
                   setShowModal(false);
-                  doSubmit();
+                  await doSubmit();
                 }}
               >
                 Post anyway
