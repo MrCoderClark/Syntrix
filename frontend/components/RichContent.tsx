@@ -9,6 +9,7 @@ interface RichContentProps {
 }
 
 let mermaidIdCounter = 0;
+let mermaidInitialized = false;
 
 export function RichContent({ html, className }: RichContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -23,20 +24,23 @@ export function RichContent({ html, className }: RichContentProps) {
     if (codeBlocks.length === 0) return;
 
     const mermaid = (await import("mermaid")).default;
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: "base",
-      themeVariables: {
-        primaryColor: "#e8e1d4",
-        primaryTextColor: "#1c1815",
-        primaryBorderColor: "#d9d0bd",
-        lineColor: "#4a4239",
-        secondaryColor: "#f4d4c9",
-        tertiaryColor: "#f6f3ec",
-        fontFamily: "var(--font-body-family, system-ui, sans-serif)",
-        fontSize: "14px",
-      },
-    });
+    if (!mermaidInitialized) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "base",
+        themeVariables: {
+          primaryColor: "#e8e1d4",
+          primaryTextColor: "#1c1815",
+          primaryBorderColor: "#d9d0bd",
+          lineColor: "#4a4239",
+          secondaryColor: "#f4d4c9",
+          tertiaryColor: "#f6f3ec",
+          fontFamily: "var(--font-body-family, system-ui, sans-serif)",
+          fontSize: "14px",
+        },
+      });
+      mermaidInitialized = true;
+    }
 
     for (const codeEl of codeBlocks) {
       const pre = codeEl.parentElement;
