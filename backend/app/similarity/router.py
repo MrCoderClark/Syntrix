@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,12 +26,13 @@ async def _get_community(slug: str, session: AsyncSession) -> Community:
     return community
 
 
-def _base_filter(community_id):
+def _base_filter(community_id: uuid.UUID):
     return [
         Post.community_id == community_id,
         Post.post_type == "question",
         Post.deleted_at.is_(None),
         Post.removed_at.is_(None),
+        Post.duplicate_of_id.is_(None),
     ]
 
 
