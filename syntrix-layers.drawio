@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="Syntrix Service Layers">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ═══════════════ TITLE ═══════════════ -->
+        <mxCell id="title" value="Syntrix — Service Layer Architecture" style="text;html=1;fontSize=22;fontStyle=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontColor=#1a1a2e;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="600" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════ LAYER 1: CLIENT (Browser) ═══════════════ -->
+        <mxCell id="layer1" value="Client Layer" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;swimlaneHead=1;rounded=1;shadow=1;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="1080" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="browser" value="Browser" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" vertex="1" parent="layer1">
+          <mxGeometry x="460" y="45" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════ LAYER 2: NEXT.JS FRONTEND ═══════════════ -->
+        <mxCell id="layer2" value="Presentation Layer — Next.js (App Router)" style="swimlane;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=14;rounded=1;shadow=1;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="240" width="1080" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="middleware" value="JWT Middleware&#xa;(route guard)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="layer2">
+          <mxGeometry x="30" y="50" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="pages" value="Pages&#xa;Home · Community&#xa;Profile · Search · Settings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="layer2">
+          <mxGeometry x="210" y="50" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="components" value="Components&#xa;Shell · UI · Editor&#xa;VoteWidget · TagPicker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="layer2">
+          <mxGeometry x="450" y="50" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="css" value="CSS Modules&#xa;+ CSS Variables&#xa;(hand-rolled)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="layer2">
+          <mxGeometry x="690" y="50" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="fonts" value="Fonts&#xa;Fraunces · Hanken&#xa;JetBrains Mono" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="layer2">
+          <mxGeometry x="880" y="50" width="150" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════ LAYER 3: FASTAPI BACKEND ═══════════════ -->
+        <mxCell id="layer3" value="API Layer — FastAPI" style="swimlane;startSize=30;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=14;rounded=1;shadow=1;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="440" width="1080" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="auth_router" value="Auth&#xa;(OAuth)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="layer3">
+          <mxGeometry x="30" y="50" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="posts_router" value="Posts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="layer3">
+          <mxGeometry x="150" y="50" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="comments_router" value="Comments" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="layer3">
+          <mxGeometry x="250" y="50" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="communities_router" value="Communities" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="layer3">
+          <mxGeometry x="360" y="50" width="100" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="votes_router" value="Votes" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="layer3">
+          <mxGeometry x="480" y="50" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="answers_router" value="Answers&#xa;(Q&amp;A)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="layer3">
+          <mxGeometry x="580" y="50" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="profiles_router" value="Profiles" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="layer3">
+          <mxGeometry x="690" y="50" width="80" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="rep_router" value="Reputation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="layer3">
+          <mxGeometry x="790" y="50" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="more_routers" value="Search · Tags&#xa;Feeds · Storage" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="layer3">
+          <mxGeometry x="900" y="50" width="130" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════ LAYER 4: BUSINESS LOGIC / MODELS ═══════════════ -->
+        <mxCell id="layer4" value="Domain Layer — Pydantic Models &amp; Query Layer" style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=14;rounded=1;shadow=1;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="640" width="1080" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="pydantic" value="Pydantic Models&#xa;(request / response schemas)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="layer4">
+          <mxGeometry x="80" y="45" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="queries" value="Query Layer&#xa;(SQLAlchemy Core / raw SQL)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="layer4">
+          <mxGeometry x="430" y="45" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="authz" value="Authorization&#xa;(ownership, mod, ban checks)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="layer4">
+          <mxGeometry x="780" y="45" width="220" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════ LAYER 5: DATA / INFRASTRUCTURE ═══════════════ -->
+        <mxCell id="layer5" value="Data &amp; Infrastructure Layer" style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;rounded=1;shadow=1;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="800" width="1080" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="postgres" value="PostgreSQL&#xa;(syntrix schema)" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;size=10;" vertex="1" parent="layer5">
+          <mxGeometry x="80" y="45" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="alembic" value="Alembic&#xa;Migrations" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="layer5">
+          <mxGeometry x="310" y="55" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="supabase_storage" value="Supabase Storage&#xa;(syntrix-uploads)" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;size=10;" vertex="1" parent="layer5">
+          <mxGeometry x="520" y="45" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="oauth_providers" value="OAuth Providers&#xa;GitHub · Google · Discord" style="rounded=1;dashed=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;" vertex="1" parent="layer5">
+          <mxGeometry x="780" y="55" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ═══════════════ EDGES ═══════════════ -->
+
+        <!-- Browser → Next.js -->
+        <mxCell id="e1" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;fontColor=#6c8ebf;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="browser" target="layer2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Next.js → FastAPI -->
+        <mxCell id="e2" value="REST API (JSON)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d79b00;fontColor=#d79b00;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer2" target="layer3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- FastAPI → Domain -->
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d6b656;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer3" target="layer4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Domain → PostgreSQL -->
+        <mxCell id="e4" value="SQL" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;fontColor=#82b366;fontSize=10;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer4" target="postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Domain → Supabase Storage -->
+        <mxCell id="e5" value="Signed URLs" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;fontColor=#82b366;fontSize=10;exitX=0.6;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer4" target="supabase_storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Auth Router → OAuth Providers -->
+        <mxCell id="e6" value="OAuth2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;fontColor=#666666;fontSize=10;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="layer3" target="oauth_providers">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="600" y="620" />
+              <mxPoint x="1060" y="620" />
+              <mxPoint x="1060" y="790" />
+              <mxPoint x="940" y="790" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Browser direct to Supabase Storage (direct upload) -->
+        <mxCell id="e7" value="Direct Upload" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;fontColor=#82b366;fontSize=10;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="browser" target="supabase_storage">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1180" y="155" />
+              <mxPoint x="1180" y="880" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Alembic → PostgreSQL -->
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="layer5" source="alembic" target="postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
