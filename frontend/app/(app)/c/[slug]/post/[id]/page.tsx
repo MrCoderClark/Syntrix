@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { TagPill } from "@/components/ui/TagPill";
 import { VoteWidget } from "@/components/VoteWidget";
+import { RichContent } from "@/components/RichContent";
 import { AnswerSection } from "./AnswerSection";
 import { CommentSection } from "./CommentSection";
 import { PostActions } from "./PostActions";
@@ -117,10 +118,7 @@ export default async function PostDetailPage({
       </div>
 
       {!post.removed_at && (
-        <div
-          className={styles.body}
-          dangerouslySetInnerHTML={{ __html: post.body_html }}
-        />
+        <RichContent html={post.body_html} className={styles.body} />
       )}
 
       <div className={styles.stats}>
