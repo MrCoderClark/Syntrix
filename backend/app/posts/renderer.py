@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 from pygments import highlight as pygments_highlight
 from pygments.formatters import HtmlFormatter
-from pygments.lexers import TextLexer, get_lexer_by_name
+from pygments.lexers import TextLexer, get_lexer_by_name, guess_lexer
 from pygments.util import ClassNotFound
 
 _KATEX_SCRIPT = Path(__file__).resolve().parents[3] / "scripts" / "render-katex.mjs"
@@ -175,7 +175,10 @@ def _render_node(node: dict) -> str:
                 f"{escape(code_text)}</code></pre>"
             )
         try:
-            lexer = get_lexer_by_name(lang) if lang else TextLexer()
+            if lang:
+                lexer = get_lexer_by_name(lang)
+            else:
+                lexer = guess_lexer(code_text)
         except ClassNotFound:
             lexer = TextLexer()
         formatter = HtmlFormatter(nowrap=True)
