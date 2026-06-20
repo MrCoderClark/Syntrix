@@ -1,0 +1,144 @@
+/* Pygments One Dark theme for Syntrix code blocks */
+
+.highlight {
+  position: relative;
+}
+
+/* Comment */
+.highlight .c,
+.highlight .ch,
+.highlight .cm,
+.highlight .cpf,
+.highlight .c1,
+.highlight .cs {
+  color: #5c6370;
+  font-style: italic;
+}
+
+/* Keyword */
+.highlight .k,
+.highlight .kc,
+.highlight .kd,
+.highlight .kn,
+.highlight .kp,
+.highlight .kr,
+.highlight .kt {
+  color: #c678dd;
+}
+
+/* Name */
+.highlight .na {
+  color: #e5c07b;
+}
+.highlight .nb {
+  color: #e5c07b;
+}
+.highlight .nc {
+  color: #e5c07b;
+}
+.highlight .nd {
+  color: #61afef;
+}
+.highlight .nf,
+.highlight .fm {
+  color: #61afef;
+}
+.highlight .ni {
+  color: #abb2bf;
+}
+.highlight .nn {
+  color: #e5c07b;
+}
+.highlight .nt {
+  color: #e06c75;
+}
+.highlight .nv,
+.highlight .vi,
+.highlight .vm,
+.highlight .vc,
+.highlight .vg,
+.highlight .vs {
+  color: #e06c75;
+}
+
+/* String */
+.highlight .s,
+.highlight .sa,
+.highlight .sb,
+.highlight .sc,
+.highlight .dl,
+.highlight .sd,
+.highlight .s2,
+.highlight .se,
+.highlight .sh,
+.highlight .si,
+.highlight .sx,
+.highlight .sr,
+.highlight .s1,
+.highlight .ss {
+  color: #98c379;
+}
+
+/* Number */
+.highlight .m,
+.highlight .mb,
+.highlight .mf,
+.highlight .mh,
+.highlight .mi,
+.highlight .mo,
+.highlight .il {
+  color: #d19a66;
+}
+
+/* Operator */
+.highlight .o,
+.highlight .ow {
+  color: #56b6c2;
+}
+
+/* Punctuation */
+.highlight .p {
+  color: #abb2bf;
+}
+
+/* Generic */
+.highlight .gd {
+  color: #e06c75;
+}
+.highlight .gi {
+  color: #98c379;
+}
+.highlight .ge {
+  font-style: italic;
+}
+.highlight .gs {
+  font-weight: bold;
+}
+
+/* Error */
+.highlight .err {
+  color: #e06c75;
+}
+
+/* Text / default */
+.highlight .w {
+  color: #abb2bf;
+}
+
+/* Math error styling */
+.math-error {
+  background: rgba(176, 59, 59, 0.15);
+  color: #e06c75;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--font-mono-family);
+  font-size: 0.9em;
+}
+
+/* Math block styling */
+.math-block {
+  display: block;
+  text-align: center;
+  margin: 0.8em 0;
+  overflow-x: auto;
+}
