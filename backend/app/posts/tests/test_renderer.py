@@ -289,6 +289,24 @@ def test_escaped_dollar():
     assert "katex" not in html.lower()
 
 
+def test_mermaid_code_block_passthrough():
+    """Mermaid code blocks should pass through as plain text with language-mermaid class."""
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "codeBlock",
+                "attrs": {"language": "mermaid"},
+                "content": [{"type": "text", "text": "graph TD\n  A --> B"}],
+            }
+        ],
+    }
+    html = render_tiptap_json(doc)
+    assert 'class="language-mermaid"' in html
+    assert "graph TD" in html
+    assert "A --&gt; B" in html
+
+
 def test_math_bad_latex():
     """Invalid LaTeX should render as error code block, not crash."""
     doc = {

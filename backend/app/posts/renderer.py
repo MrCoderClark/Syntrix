@@ -169,6 +169,11 @@ def _render_node(node: dict) -> str:
     if t == "codeBlock":
         lang = attrs.get("language", "") or ""
         code_text = _extract_text(content)
+        if lang == "mermaid":
+            return (
+                f'<pre class="highlight"><code class="language-mermaid">'
+                f"{escape(code_text)}</code></pre>"
+            )
         try:
             lexer = get_lexer_by_name(lang) if lang else TextLexer()
         except ClassNotFound:
