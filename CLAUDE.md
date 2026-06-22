@@ -7,14 +7,14 @@ polish step.
 
 ## Start here — current state
 
-Phase 1 is **complete**. Phase 2 (Q&A Layer) is **in progress**. The full
+Phase 1 is **complete**. Phase 2 (Q&A Layer) is **complete**. The full
 spec lives in `PRD.md`. All design artifacts are archived under
 `docs/superpowers/mockups/` as HTML + retina PNG. Implementation plans
-(1–18) live in `.agent/plans/`.
+(1–19) live in `.agent/plans/`.
 
-**Completed sections:** 01–18 (scaffold through markdown polish).
+**Completed sections:** 01–19 (scaffold through duplicate detection).
 **Current section:** none — on `main`.
-**Next section:** 19 (`feat/duplicate-detection`).
+**Next section:** Phase 3 planning or Phase 2 polish pass.
 
 See `PROGRESS.md` for the full section checklist and current status.
 
