@@ -212,6 +212,9 @@ async def accept_answer(
     if post.author_id != user.id:
         raise HTTPException(status_code=403, detail="Only the question author can accept")
 
+    if answer.is_accepted:
+        return {"status": "accepted"}
+
     # Unaccept any previously accepted answer on this question
     await session.execute(
         update(Answer)

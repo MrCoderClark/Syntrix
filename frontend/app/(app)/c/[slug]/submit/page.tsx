@@ -62,6 +62,15 @@ export default function SubmitPostPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!showModal) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowModal(false);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [showModal]);
+
   const fetchTitleSuggestions = useCallback(
     async (query: string) => {
       if (query.length < 10 || postType !== "question") {

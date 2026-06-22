@@ -56,6 +56,7 @@ export function AnswerCard({
   const [editing, setEditing] = useState(false);
   const [editJson, setEditJson] = useState<JSONContent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const isAuthor = currentUserId && answer.author_id === currentUserId;
   const initials = (answer.author_display_name ?? "?")
@@ -68,6 +69,7 @@ export function AnswerCard({
   async function handleSaveEdit() {
     if (!editJson) return;
     setSaving(true);
+    setEditError(null);
     try {
       const res = await fetch(`/api/answers/${answer.id}`, {
         method: "PATCH",
@@ -78,6 +80,11 @@ export function AnswerCard({
         const updated = await res.json();
         onUpdate(answer.id, updated.body_html, updated.body_json);
         setEditing(false);
+      } else {
+        const err = await res
+          .json()
+          .catch(() => ({ detail: "Failed to save" }));
+        setEditError(err.detail || "Failed to save");
       }
     } finally {
       setSaving(false);
@@ -85,6 +92,7 @@ export function AnswerCard({
   }
 
   async function handleDelete() {
+    if (!window.confirm("Delete this answer? This cannot be undone.")) return;
     const res = await fetch(`/api/answers/${answer.id}`, { method: "DELETE" });
     if (res.ok) onDelete(answer.id);
   }
@@ -137,6 +145,17 @@ export function AnswerCard({
                 Cancel
               </Button>
             </div>
+            {editError && (
+              <p
+                style={{
+                  color: "var(--bad)",
+                  fontSize: "13px",
+                  marginTop: "4px",
+                }}
+              >
+                {editError}
+              </p>
+            )}
           </div>
         )}
 
