@@ -2,17 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { SimilarQuestion } from "@/types/similarity";
 import { Button } from "@/components/ui/Button";
 import styles from "./PostDetail.module.css";
-
-interface SimilarQuestion {
-  id: string;
-  title: string;
-  score: number;
-  answer_count: number;
-  has_accepted_answer: boolean;
-  similarity: number;
-}
 
 interface Props {
   postId: string;
@@ -191,10 +183,7 @@ export function PostActions({
                 </div>
               ))}
               {dupSearch.length >= 10 && dupResults.length === 0 && (
-                <div
-                  className={styles.dupResultItem}
-                  style={{ color: "var(--ink-faint)" }}
-                >
+                <div className={styles.dupResultEmpty}>
                   No matching questions found
                 </div>
               )}
