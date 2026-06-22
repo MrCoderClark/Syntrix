@@ -7,14 +7,17 @@ polish step.
 
 ## Start here — current state
 
-Phase 1 is **complete**. Phase 2 (Q&A Layer) is **complete**. The full
-spec lives in `PRD.md`. All design artifacts are archived under
-`docs/superpowers/mockups/` as HTML + retina PNG. Implementation plans
-(1–19) live in `.agent/plans/`.
+Phase 1 is **complete**. Phase 2 (Q&A Layer) is **complete**. Phase 3
+(Real-time Chat) is **in design**. The full spec lives in `PRD.md`. All
+design artifacts are archived under `docs/superpowers/mockups/` as HTML +
+retina PNG. Implementation plans (1–20) live in `.agent/plans/`.
+
+Phase 3 is decomposed into 4 subsystems, each with its own spec → plan →
+implementation cycle. Subsystem 1 (WS Gateway & Presence) spec is approved.
 
 **Completed sections:** 01–20 (scaffold through Phase 2 polish).
-**Current section:** none — on `main`.
-**Next section:** Phase 3 planning (Real-time Chat).
+**Current section:** Phase 3, Subsystem 1 — planning.
+**Next section:** Phase 3, Subsystem 1 implementation.
 
 See `PROGRESS.md` for the full section checklist and current status.
 
