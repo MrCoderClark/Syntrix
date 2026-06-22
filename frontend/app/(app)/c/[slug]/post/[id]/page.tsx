@@ -39,6 +39,8 @@ interface PostData {
   tags: PostTag[];
   deleted_at: string | null;
   removed_at: string | null;
+  duplicate_of_id: string | null;
+  duplicate_of_title: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,6 +81,15 @@ export default async function PostDetailPage({
       {post.removed_at && (
         <div className={styles.removedBanner}>
           This post was removed by a moderator.
+        </div>
+      )}
+
+      {post.duplicate_of_id && post.duplicate_of_title && (
+        <div className={styles.duplicateBanner}>
+          This question has been marked as a duplicate of{" "}
+          <Link href={`/c/${slug}/post/${post.duplicate_of_id}`}>
+            {post.duplicate_of_title}
+          </Link>
         </div>
       )}
 
@@ -145,7 +156,12 @@ export default async function PostDetailPage({
         )}
       </div>
 
-      <PostActions postId={post.id} slug={slug} />
+      <PostActions
+        postId={post.id}
+        slug={slug}
+        isQuestion={isQuestion}
+        duplicateOfId={post.duplicate_of_id}
+      />
 
       {isQuestion ? (
         <AnswerSection postId={post.id} questionAuthorId={post.author_id} />

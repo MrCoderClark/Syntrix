@@ -6,6 +6,10 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator
 
 
+class MarkDuplicateRequest(BaseModel):
+    duplicate_of_id: UUID
+
+
 class PostTagResponse(BaseModel):
     id: str
     slug: str
@@ -55,6 +59,8 @@ class PostResponse(BaseModel):
     post_type: str = "discussion"
     answer_count: int = 0
     has_accepted_answer: bool = False
+    duplicate_of_id: UUID | None = None
+    duplicate_of_title: str | None = None
     tags: list[PostTagResponse] = Field(default_factory=list)
     deleted_at: datetime | None = None
     removed_at: datetime | None = None

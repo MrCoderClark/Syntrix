@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { JSONContent } from "@tiptap/react";
 import { Button } from "@/components/ui/Button";
 import { TagPicker } from "@/components/ui/TagPicker";
@@ -18,6 +18,20 @@ interface TagOption {
   usage_count: number;
 }
 
+interface SimilarQuestion {
+  id: string;
+  title: string;
+  score: number;
+  answer_count: number;
+  has_accepted_answer: boolean;
+  similarity: number;
+}
+
+function extractText(node: JSONContent): string {
+  if (node.type === "text") return node.text ?? "";
+  return (node.content ?? []).map(extractText).join(" ");
+}
+
 export default function SubmitPostPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
@@ -29,6 +43,12 @@ export default function SubmitPostPage() {
   const bodyRef = useRef<JSONContent>({ type: "doc", content: [] });
   const [communityId, setCommunityId] = useState<string | null>(null);
 
+  const [suggestions, setSuggestions] = useState<SimilarQuestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [modalMatches, setModalMatches] = useState<SimilarQuestion[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     fetch(`/api/communities/${params.slug}`)
       .then((r) => r.json())
@@ -36,8 +56,42 @@ export default function SubmitPostPage() {
       .catch(() => {});
   }, [params.slug]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const fetchTitleSuggestions = useCallback(
+    async (query: string) => {
+      if (query.length < 10 || postType !== "question") {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+      try {
+        const resp = await fetch(
+          `/api/communities/${params.slug}/questions/similar?title=${encodeURIComponent(query)}`,
+        );
+        if (resp.ok) {
+          const data = await resp.json();
+          setSuggestions(data.items);
+          setShowSuggestions(data.items.length > 0);
+        }
+      } catch {
+        /* ignore network errors for suggestions */
+      }
+    },
+    [params.slug, postType],
+  );
+
+  function handleTitleChange(value: string) {
+    setTitle(value.slice(0, 300));
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchTitleSuggestions(value), 300);
+  }
+
+  async function doSubmit() {
     if (!communityId || !title.trim()) return;
 
     setStatus("submitting");
@@ -65,6 +119,37 @@ export default function SubmitPostPage() {
     }
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!communityId || !title.trim()) return;
+
+    if (postType === "question") {
+      try {
+        const bodyText = extractText(bodyRef.current);
+        const resp = await fetch(
+          `/api/communities/${params.slug}/questions/similar`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: title.trim(), body_text: bodyText }),
+          },
+        );
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.items.length > 0) {
+            setModalMatches(data.items);
+            setShowModal(true);
+            return;
+          }
+        }
+      } catch {
+        /* if similarity check fails, just submit */
+      }
+    }
+
+    await doSubmit();
+  }
+
   const isQuestion = postType === "question";
 
   return (
@@ -78,7 +163,11 @@ export default function SubmitPostPage() {
         <button
           type="button"
           className={`${styles.typeTab} ${!isQuestion ? styles.typeTabActive : ""}`}
-          onClick={() => setPostType("discussion")}
+          onClick={() => {
+            setPostType("discussion");
+            setSuggestions([]);
+            setShowSuggestions(false);
+          }}
         >
           Post
         </button>
@@ -92,16 +181,44 @@ export default function SubmitPostPage() {
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.titleField}>
+        <div className={`${styles.titleField} ${styles.suggestionsWrap}`}>
           <input
             className={styles.titleInput}
             placeholder={isQuestion ? "What's your question?" : "Post title"}
             value={title}
-            onChange={(e) => setTitle(e.target.value.slice(0, 300))}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
             maxLength={300}
             required
           />
           <span className={styles.counter}>{title.length}/300</span>
+
+          {showSuggestions && suggestions.length > 0 && (
+            <div className={styles.suggestionsPanel}>
+              <div className={styles.suggestionsHeader}>Similar questions</div>
+              {suggestions.map((q) => (
+                <a
+                  key={q.id}
+                  href={`/c/${params.slug}/post/${q.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.suggestionItem}
+                >
+                  <span className={styles.suggestionTitle}>{q.title}</span>
+                  <span className={styles.suggestionMeta}>
+                    <span>{q.score} votes</span>
+                    <span>{q.answer_count} answers</span>
+                    {q.has_accepted_answer && (
+                      <span className={styles.suggestionAccepted}>
+                        &#10003;
+                      </span>
+                    )}
+                  </span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         {isQuestion && (
@@ -141,6 +258,55 @@ export default function SubmitPostPage() {
           )}
         </div>
       </form>
+
+      {showModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <h2 className={styles.modalTitle}>
+              Similar questions already exist
+            </h2>
+            <p className={styles.modalDesc}>
+              Check if any of these answer your question before posting:
+            </p>
+            <div className={styles.modalList}>
+              {modalMatches.map((q) => (
+                <a
+                  key={q.id}
+                  href={`/c/${params.slug}/post/${q.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.suggestionItem}
+                >
+                  <span className={styles.suggestionTitle}>{q.title}</span>
+                  <span className={styles.suggestionMeta}>
+                    <span>{q.score} votes</span>
+                    <span>{q.answer_count} answers</span>
+                    {q.has_accepted_answer && (
+                      <span className={styles.suggestionAccepted}>
+                        &#10003;
+                      </span>
+                    )}
+                  </span>
+                </a>
+              ))}
+            </div>
+            <div className={styles.modalActions}>
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={async () => {
+                  setShowModal(false);
+                  await doSubmit();
+                }}
+              >
+                Post anyway
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
