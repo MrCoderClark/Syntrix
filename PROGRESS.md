@@ -5,10 +5,10 @@ Track build progress through Syntrix. Update this file as sections complete
 
 ## Current state — read this first
 
-> **Phase 2 is complete.** All Q&A Layer sections (14–19) are merged.
+> **Phase 2 is complete.** All Q&A Layer sections (14–20) are merged, including the polish pass.
 >
 > **Current branch:** `main`
-> **Next action:** plan Phase 3 (Real-time Chat) or Phase 2 polish pass.
+> **Next action:** plan Phase 3 (Real-time Chat).
 
 ## Convention
 - `[ ]` = Not started
@@ -46,6 +46,7 @@ by the writing-plans skill after the spec is approved.
 | 17 | `[x]` | `feat/reputation` | Rep events, badges, awarding logic, profile display |
 | 18 | `[x]` | `feat/markdown-polish` | Pygments code blocks, KaTeX math, Mermaid diagrams |
 | 19 | `[x]` | `feat/duplicate-detection` | Similar-question suggestions during ask, mark-as-duplicate |
+| 20 | `[x]` | `fix/phase2-polish` | Vote state persistence, tag search/feed integration, error handling, UX polish |
 
 ## Phase 3 — Real-time Chat
 

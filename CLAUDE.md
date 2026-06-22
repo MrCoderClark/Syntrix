@@ -12,9 +12,9 @@ spec lives in `PRD.md`. All design artifacts are archived under
 `docs/superpowers/mockups/` as HTML + retina PNG. Implementation plans
 (1–19) live in `.agent/plans/`.
 
-**Completed sections:** 01–19 (scaffold through duplicate detection).
+**Completed sections:** 01–20 (scaffold through Phase 2 polish).
 **Current section:** none — on `main`.
-**Next section:** Phase 3 planning or Phase 2 polish pass.
+**Next section:** Phase 3 planning (Real-time Chat).
 
 See `PROGRESS.md` for the full section checklist and current status.
 
