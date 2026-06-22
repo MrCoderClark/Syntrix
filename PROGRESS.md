@@ -5,11 +5,10 @@ Track build progress through Syntrix. Update this file as sections complete
 
 ## Current state — read this first
 
-> **Phase 2 is in progress.** Tags, video embeds, Q&A post type,
-> reputation + badges, and markdown polish are built.
+> **Phase 2 is complete.** All Q&A Layer sections (14–19) are merged.
 >
 > **Current branch:** `main`
-> **Next action:** plan and build Section 19 (`feat/duplicate-detection`).
+> **Next action:** plan Phase 3 (Real-time Chat) or Phase 2 polish pass.
 
 ## Convention
 - `[ ]` = Not started
@@ -46,7 +45,7 @@ by the writing-plans skill after the spec is approved.
 | 16 | `[x]` | `feat/qa-posts` | Question post type, answers, voting, accept flow, feed filters |
 | 17 | `[x]` | `feat/reputation` | Rep events, badges, awarding logic, profile display |
 | 18 | `[x]` | `feat/markdown-polish` | Pygments code blocks, KaTeX math, Mermaid diagrams |
-| 19 | `[ ]` | `feat/duplicate-detection` | Similar-question suggestions during ask, mark-as-duplicate |
+| 19 | `[x]` | `feat/duplicate-detection` | Similar-question suggestions during ask, mark-as-duplicate |
 
 ## Phase 3 — Real-time Chat
 

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import OptionalUser
 from app.db.session import get_session
-from app.models import Community, CommunityMembership, Post, User
+from app.models import Community, CommunityMembership, Post, QuestionTag, Tag, User
 from app.posts.schemas import PostListResponse, PostResponse, PostTagResponse
 
 from .algorithms import hot_order, new_order, top_order, top_period_filter
@@ -55,6 +55,27 @@ def _post_response(
         created_at=post.created_at,
         updated_at=post.updated_at,
     )
+
+
+async def _load_tags_for_posts(
+    session: AsyncSession,
+    posts: list[Post],
+) -> dict[uuid.UUID, list[PostTagResponse]]:
+    question_ids = [p.id for p in posts if p.post_type == "question"]
+    if not question_ids:
+        return {}
+    stmt = (
+        select(QuestionTag.question_id, Tag.id, Tag.slug, Tag.name, Tag.color)
+        .join(Tag, QuestionTag.tag_id == Tag.id)
+        .where(QuestionTag.question_id.in_(question_ids))
+    )
+    result = await session.execute(stmt)
+    tags_by_post: dict[uuid.UUID, list[PostTagResponse]] = {}
+    for row in result.all():
+        qid = row[0]
+        tag = PostTagResponse(id=str(row[1]), slug=row[2], name=row[3], color=row[4])
+        tags_by_post.setdefault(qid, []).append(tag)
+    return tags_by_post
 
 
 def _apply_sort(stmt, sort: SortMode, period: str | None):
@@ -104,9 +125,19 @@ async def home_feed(
     result = await session.execute(stmt)
     rows = result.all()
 
+    post_objs = [row.Post for row in rows[:limit]]
+    tags_map = await _load_tags_for_posts(session, post_objs)
+
     posts = []
     for row in rows[:limit]:
-        posts.append(_post_response(row.Post, author=row.User, community=row.Community))
+        posts.append(
+            _post_response(
+                row.Post,
+                author=row.User,
+                community=row.Community,
+                tags=tags_map.get(row.Post.id),
+            )
+        )
 
     next_cursor = None
     if len(rows) > limit:
@@ -158,9 +189,19 @@ async def community_feed(
     result = await session.execute(stmt)
     rows = result.all()
 
+    post_objs = [row.Post for row in rows[:limit]]
+    tags_map = await _load_tags_for_posts(session, post_objs)
+
     posts = []
     for row in rows[:limit]:
-        posts.append(_post_response(row.Post, author=row.User, community=community))
+        posts.append(
+            _post_response(
+                row.Post,
+                author=row.User,
+                community=community,
+                tags=tags_map.get(row.Post.id),
+            )
+        )
 
     next_cursor = None
     if len(rows) > limit:

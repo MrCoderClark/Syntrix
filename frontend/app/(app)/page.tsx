@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
+import { TagPill } from "@/components/ui/TagPill";
 import { FeedControls } from "@/components/FeedControls";
 import { PostCardSkeleton } from "@/components/PostCardSkeleton";
 import { VoteWidget } from "@/components/VoteWidget";
@@ -24,6 +25,7 @@ interface PostItem {
   removed_at: string | null;
   created_at: string;
   body_html: string;
+  tags?: { id: string; slug: string; name: string; color: string | null }[];
 }
 
 type SortMode = "hot" | "new" | "top";
@@ -33,8 +35,26 @@ export default function HomePage() {
   const [sort, setSort] = useState<SortMode>("hot");
   const [period, setPeriod] = useState<Period>("all");
   const [posts, setPosts] = useState<PostItem[]>([]);
+  const [postVotes, setPostVotes] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  async function fetchPostVotes(postIds: string[]) {
+    if (postIds.length === 0) return;
+    const params = new URLSearchParams({
+      target_type: "post",
+      target_ids: postIds.join(","),
+    });
+    try {
+      const res = await fetch(`/api/votes/mine?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPostVotes(data.votes ?? {});
+      }
+    } catch {
+      /* ignore — votes default to 0 */
+    }
+  }
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -45,7 +65,9 @@ export default function HomePage() {
       const res = await fetch(`/api/feed?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        setPosts(data.posts ?? []);
+        const fetchedPosts = data.posts ?? [];
+        setPosts(fetchedPosts);
+        await fetchPostVotes(fetchedPosts.map((p: PostItem) => p.id));
       } else {
         setError(true);
       }
@@ -102,7 +124,7 @@ export default function HomePage() {
                     targetType="post"
                     targetId={post.id}
                     score={post.score}
-                    userVote={0}
+                    userVote={postVotes[post.id] ?? 0}
                   />
                 </div>
                 <Link
@@ -117,6 +139,20 @@ export default function HomePage() {
                     )}
                     <h3 className={styles.postTitle}>{post.title}</h3>
                   </div>
+                  {post.tags && post.tags.length > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "4px",
+                        marginTop: "4px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {post.tags.map((t) => (
+                        <TagPill key={t.id} name={t.name} color={t.color} />
+                      ))}
+                    </div>
+                  )}
                   <p className={styles.postPreview}>
                     {post.removed_at
                       ? "[removed by moderator]"

@@ -1,18 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { SimilarQuestion } from "@/types/similarity";
 import { Button } from "@/components/ui/Button";
 import styles from "./PostDetail.module.css";
-
-interface SimilarQuestion {
-  id: string;
-  title: string;
-  score: number;
-  answer_count: number;
-  has_accepted_answer: boolean;
-  similarity: number;
-}
 
 interface Props {
   postId: string;
@@ -34,6 +26,7 @@ export function PostActions({
   const [dupResults, setDupResults] = useState<SimilarQuestion[]>([]);
   const [selectedDupId, setSelectedDupId] = useState<string | null>(null);
   const [marking, setMarking] = useState(false);
+  const [unmarking, setUnmarking] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function handleDelete() {
@@ -101,11 +94,22 @@ export function PostActions({
   }
 
   async function handleUnmarkDuplicate() {
+    setUnmarking(true);
     const res = await fetch(`/api/posts/${postId}/mark-duplicate`, {
       method: "DELETE",
     });
+    setUnmarking(false);
     if (res.ok) router.refresh();
   }
+
+  useEffect(() => {
+    if (!showDupModal) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowDupModal(false);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [showDupModal]);
 
   return (
     <>
@@ -146,8 +150,9 @@ export function PostActions({
             type="button"
             className={styles.actionBtn}
             onClick={handleUnmarkDuplicate}
+            disabled={unmarking}
           >
-            Unmark duplicate
+            {unmarking ? "Unmarking..." : "Unmark duplicate"}
           </button>
         )}
       </div>
@@ -178,10 +183,7 @@ export function PostActions({
                 </div>
               ))}
               {dupSearch.length >= 10 && dupResults.length === 0 && (
-                <div
-                  className={styles.dupResultItem}
-                  style={{ color: "var(--ink-faint)" }}
-                >
+                <div className={styles.dupResultEmpty}>
                   No matching questions found
                 </div>
               )}

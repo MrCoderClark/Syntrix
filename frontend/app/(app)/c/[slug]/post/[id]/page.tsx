@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { Avatar } from "@/components/ui/Avatar";
 import { TagPill } from "@/components/ui/TagPill";
 import { VoteWidget } from "@/components/VoteWidget";
@@ -53,6 +54,29 @@ async function getPost(id: string): Promise<PostData | null> {
   return res.json();
 }
 
+async function getMyVotes(
+  targetType: string,
+  targetIds: string[],
+  cookieHeader: string | null,
+): Promise<Record<string, number>> {
+  if (!cookieHeader || targetIds.length === 0) return {};
+  const params = new URLSearchParams({
+    target_type: targetType,
+    target_ids: targetIds.join(","),
+  });
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/votes/mine?${params}`, {
+      cache: "no-store",
+      headers: { Cookie: cookieHeader },
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data.votes ?? {};
+  } catch {
+    return {};
+  }
+}
+
 export default async function PostDetailPage({
   params,
 }: {
@@ -61,6 +85,11 @@ export default async function PostDetailPage({
   const { slug, id } = await params;
   const post = await getPost(id);
   if (!post) notFound();
+
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
+  const postVotes = await getMyVotes("post", [post.id], cookieHeader);
+  const postUserVote = postVotes[post.id] ?? 0;
 
   const isQuestion = post.post_type === "question";
   const initials = (post.author_display_name ?? "?")
@@ -137,7 +166,7 @@ export default async function PostDetailPage({
           targetType="post"
           targetId={post.id}
           score={post.score}
-          userVote={0}
+          userVote={postUserVote}
           layout="horizontal"
         />
         <span>·</span>

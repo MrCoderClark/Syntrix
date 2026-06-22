@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.deps import CurrentUser
+from app.auth.deps import CurrentUser, OptionalUser
 from app.db.session import get_session
-from app.models import Comment, CommentVote, CommunityMembership, Post, PostVote
+from app.models import AnswerVote, Comment, CommentVote, CommunityMembership, Post, PostVote
 from app.reputation.engine import award_rep
 
-from .schemas import VoteRequest, VoteResponse
+from .schemas import BatchVotesResponse, VoteRequest, VoteResponse, VoteTargetType
 
 router = APIRouter(tags=["votes"])
 
@@ -161,3 +161,40 @@ async def vote_comment(
     await session.refresh(comment)
 
     return VoteResponse(score=comment.score, user_vote=body.value)
+
+
+@router.get("/api/votes/mine", response_model=BatchVotesResponse)
+async def batch_my_votes(
+    target_type: VoteTargetType,
+    target_ids: str = Query(max_length=2000),
+    user: OptionalUser = None,
+    session: AsyncSession = Depends(get_session),
+):
+    # Auth check after query param validation so invalid enum returns 422, not 401
+    if user is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    raw_ids = [s.strip() for s in target_ids.split(",") if s.strip()]
+    if len(raw_ids) > 50:
+        raise HTTPException(status_code=422, detail="Max 50 IDs per request")
+
+    try:
+        parsed = [uuid.UUID(i) for i in raw_ids]
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Invalid UUID in target_ids") from None
+
+    model_map = {
+        VoteTargetType.post: (PostVote, PostVote.post_id),
+        VoteTargetType.comment: (CommentVote, CommentVote.comment_id),
+        VoteTargetType.answer: (AnswerVote, AnswerVote.answer_id),
+    }
+    vote_model, id_col = model_map[target_type]
+
+    stmt = select(id_col, vote_model.value).where(
+        vote_model.user_id == user.id,
+        id_col.in_(parsed),
+    )
+    result = await session.execute(stmt)
+    votes = {str(row[0]): row[1] for row in result.all()}
+
+    return BatchVotesResponse(votes=votes)

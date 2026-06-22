@@ -16,9 +16,37 @@ export function CommentSection({ postId }: Props) {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [commentVotes, setCommentVotes] = useState<Record<string, number>>({});
   const [rootJson, setRootJson] = useState<JSONContent | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
+
+  function collectCommentIds(commentList: CommentData[]): string[] {
+    const ids: string[] = [];
+    for (const c of commentList) {
+      ids.push(c.id);
+      if (c.children.length > 0) ids.push(...collectCommentIds(c.children));
+    }
+    return ids;
+  }
+
+  async function fetchCommentVotes(commentList: CommentData[]) {
+    const ids = collectCommentIds(commentList);
+    if (ids.length === 0) return;
+    const params = new URLSearchParams({
+      target_type: "comment",
+      target_ids: ids.slice(0, 50).join(","),
+    });
+    try {
+      const res = await fetch(`/api/votes/mine?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCommentVotes(data.votes ?? {});
+      }
+    } catch {
+      /* ignore */
+    }
+  }
 
   const fetchComments = useCallback(async () => {
     setError(false);
@@ -28,6 +56,7 @@ export function CommentSection({ postId }: Props) {
         const data = await res.json();
         setComments(data.comments);
         setTotalCount(data.total_count);
+        await fetchCommentVotes(data.comments);
       } else {
         setError(true);
       }
@@ -93,6 +122,7 @@ export function CommentSection({ postId }: Props) {
               key={c.id}
               comment={c}
               postId={postId}
+              commentVotes={commentVotes}
               onReplyPosted={fetchComments}
             />
           ))}

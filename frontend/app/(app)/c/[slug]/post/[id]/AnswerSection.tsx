@@ -18,6 +18,7 @@ export function AnswerSection({ postId, questionAuthorId }: Props) {
   const [count, setCount] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [answerVotes, setAnswerVotes] = useState<Record<string, number>>({});
   const bodyRef = useRef<JSONContent>({ type: "doc", content: [] });
   const [editorKey, setEditorKey] = useState(0);
 
@@ -30,12 +31,31 @@ export function AnswerSection({ postId, questionAuthorId }: Props) {
       .catch(() => {});
   }, []);
 
+  async function fetchAnswerVotes(answerIds: string[]) {
+    if (answerIds.length === 0) return;
+    const params = new URLSearchParams({
+      target_type: "answer",
+      target_ids: answerIds.join(","),
+    });
+    try {
+      const res = await fetch(`/api/votes/mine?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAnswerVotes(data.votes ?? {});
+      }
+    } catch {
+      /* ignore — votes will default to 0 */
+    }
+  }
+
   const fetchAnswers = useCallback(async () => {
     const res = await fetch(`/api/posts/${postId}/answers`);
     if (!res.ok) return;
     const data = await res.json();
     setAnswers(data.answers);
     setCount(data.count);
+    const ids = (data.answers as AnswerData[]).map((a) => a.id);
+    await fetchAnswerVotes(ids);
   }, [postId]);
 
   useEffect(() => {
@@ -107,6 +127,7 @@ export function AnswerSection({ postId, questionAuthorId }: Props) {
             answer={a}
             isQuestionAuthor={isQuestionAuthor}
             currentUserId={currentUserId}
+            userVote={answerVotes[a.id] ?? 0}
             onAccept={handleAccept}
             onUnaccept={handleUnaccept}
             onUpdate={handleUpdate}

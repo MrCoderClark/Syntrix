@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SearchPostResult(BaseModel):
@@ -32,7 +32,17 @@ class SearchUserResult(BaseModel):
     avatar_url: str | None
 
 
+class SearchTagResult(BaseModel):
+    id: str
+    slug: str
+    name: str
+    color: str | None
+    community_slug: str
+    usage_count: int
+
+
 class SearchResponse(BaseModel):
     posts: list[SearchPostResult]
     communities: list[SearchCommunityResult]
     users: list[SearchUserResult]
+    tags: list[SearchTagResult] = Field(default_factory=list)

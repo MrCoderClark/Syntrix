@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { JSONContent } from "@tiptap/react";
+import type { SimilarQuestion } from "@/types/similarity";
 import { Button } from "@/components/ui/Button";
 import { TagPicker } from "@/components/ui/TagPicker";
 import { SyntrixEditor } from "@/lib/editor/SyntrixEditor";
@@ -16,15 +17,6 @@ interface TagOption {
   name: string;
   color: string | null;
   usage_count: number;
-}
-
-interface SimilarQuestion {
-  id: string;
-  title: string;
-  score: number;
-  answer_count: number;
-  has_accepted_answer: boolean;
-  similarity: number;
 }
 
 function extractText(node: JSONContent): string {
@@ -45,6 +37,7 @@ export default function SubmitPostPage() {
 
   const [suggestions, setSuggestions] = useState<SimilarQuestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchRan, setSearchRan] = useState(false);
   const [modalMatches, setModalMatches] = useState<SimilarQuestion[]>([]);
   const [showModal, setShowModal] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -62,11 +55,21 @@ export default function SubmitPostPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!showModal) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowModal(false);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [showModal]);
+
   const fetchTitleSuggestions = useCallback(
     async (query: string) => {
       if (query.length < 10 || postType !== "question") {
         setSuggestions([]);
         setShowSuggestions(false);
+        setSearchRan(false);
         return;
       }
       try {
@@ -76,6 +79,7 @@ export default function SubmitPostPage() {
         if (resp.ok) {
           const data = await resp.json();
           setSuggestions(data.items);
+          setSearchRan(true);
           setShowSuggestions(data.items.length > 0);
         }
       } catch {
@@ -187,8 +191,15 @@ export default function SubmitPostPage() {
             placeholder={isQuestion ? "What's your question?" : "Post title"}
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+            onBlur={() =>
+              setTimeout(() => {
+                setShowSuggestions(false);
+                setSearchRan(false);
+              }, 200)
+            }
+            onFocus={() => {
+              if (suggestions.length > 0) setShowSuggestions(true);
+            }}
             maxLength={300}
             required
           />
@@ -219,6 +230,24 @@ export default function SubmitPostPage() {
               ))}
             </div>
           )}
+
+          {!showSuggestions &&
+            searchRan &&
+            suggestions.length === 0 &&
+            title.length >= 10 &&
+            postType === "question" && (
+              <div className={styles.suggestionsPanel}>
+                <div className={styles.suggestionsHeader}>
+                  Similar questions
+                </div>
+                <div
+                  className={styles.suggestionItem}
+                  style={{ color: "var(--ink-faint)" }}
+                >
+                  No similar questions found
+                </div>
+              </div>
+            )}
         </div>
 
         {isQuestion && (
