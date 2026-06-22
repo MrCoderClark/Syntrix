@@ -32,6 +32,7 @@ interface AnswerCardProps {
   answer: AnswerData;
   isQuestionAuthor: boolean;
   currentUserId: string | null;
+  userVote: number;
   onAccept: (answerId: string) => void;
   onUnaccept: (answerId: string) => void;
   onUpdate: (
@@ -46,6 +47,7 @@ export function AnswerCard({
   answer,
   isQuestionAuthor,
   currentUserId,
+  userVote,
   onAccept,
   onUnaccept,
   onUpdate,
@@ -96,7 +98,7 @@ export function AnswerCard({
           targetType="answer"
           targetId={answer.id}
           score={answer.score}
-          userVote={0}
+          userVote={userVote}
           layout="vertical"
         />
         {answer.is_accepted && (

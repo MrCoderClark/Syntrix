@@ -29,10 +29,16 @@ export interface CommentData {
 interface Props {
   comment: CommentData;
   postId: string;
+  commentVotes: Record<string, number>;
   onReplyPosted: () => void;
 }
 
-export function CommentNode({ comment, postId, onReplyPosted }: Props) {
+export function CommentNode({
+  comment,
+  postId,
+  commentVotes,
+  onReplyPosted,
+}: Props) {
   const [replying, setReplying] = useState(false);
   const [replyJson, setReplyJson] = useState<JSONContent | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -113,7 +119,7 @@ export function CommentNode({ comment, postId, onReplyPosted }: Props) {
               targetType="comment"
               targetId={comment.id}
               score={comment.score}
-              userVote={0}
+              userVote={commentVotes[comment.id] ?? 0}
               layout="horizontal"
             />
             <button
@@ -144,6 +150,7 @@ export function CommentNode({ comment, postId, onReplyPosted }: Props) {
               key={child.id}
               comment={child}
               postId={postId}
+              commentVotes={commentVotes}
               onReplyPosted={onReplyPosted}
             />
           ))}
