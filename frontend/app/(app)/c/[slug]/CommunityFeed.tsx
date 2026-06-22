@@ -3,11 +3,19 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
+import { TagPill } from "@/components/ui/TagPill";
 import { FeedControls } from "@/components/FeedControls";
 import { PostCardSkeleton } from "@/components/PostCardSkeleton";
 import { VoteWidget } from "@/components/VoteWidget";
 import { stripHtml, timeAgo } from "@/lib/text";
 import styles from "./page.module.css";
+
+interface PostTag {
+  id: string;
+  slug: string;
+  name: string;
+  color: string | null;
+}
 
 interface PostItem {
   id: string;
@@ -24,6 +32,7 @@ interface PostItem {
   removed_at: string | null;
   created_at: string;
   body_html: string;
+  tags: PostTag[];
 }
 
 type PostTypeFilter = "all" | "discussion" | "question";
@@ -168,6 +177,20 @@ export function CommunityFeed({ communityId, slug }: Props) {
                     )}
                     <h3 className={styles.postTitle}>{post.title}</h3>
                   </div>
+                  {post.tags && post.tags.length > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "4px",
+                        marginTop: "4px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {post.tags.map((t) => (
+                        <TagPill key={t.id} name={t.name} color={t.color} />
+                      ))}
+                    </div>
+                  )}
                   <p className={styles.postPreview}>
                     {post.removed_at
                       ? "[removed by moderator]"

@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
-from app.models import Community, CommunityMembership, Post, User
+from app.models import Community, CommunityMembership, Post, QuestionTag, Tag, User
 
 from .schemas import (
     SearchCommunityResult,
     SearchPostResult,
     SearchResponse,
+    SearchTagResult,
     SearchUserResult,
 )
 
@@ -26,6 +27,12 @@ async def search(
 ):
     pattern = f"%{q}%"
 
+    tag_match_subq = (
+        select(QuestionTag.question_id)
+        .join(Tag, QuestionTag.tag_id == Tag.id)
+        .where(Tag.name.ilike(pattern) | Tag.slug.ilike(pattern))
+    )
+
     post_stmt = (
         select(Post, User, Community)
         .outerjoin(User, Post.author_id == User.id)
@@ -33,7 +40,10 @@ async def search(
         .where(
             Post.deleted_at.is_(None),
             Post.removed_at.is_(None),
-            Post.title.ilike(pattern),
+            or_(
+                Post.title.ilike(pattern),
+                Post.id.in_(tag_match_subq),
+            ),
         )
         .order_by(Post.score.desc(), Post.created_at.desc())
         .limit(LIMIT)
@@ -102,4 +112,27 @@ async def search(
         for row in user_rows
     ]
 
-    return SearchResponse(posts=posts, communities=communities, users=users)
+    tag_stmt = (
+        select(Tag, Community.slug.label("comm_slug"))
+        .join(Community, Tag.community_id == Community.id)
+        .where(
+            Tag.name.ilike(pattern) | Tag.slug.ilike(pattern),
+        )
+        .order_by(Tag.usage_count.desc())
+        .limit(5)
+    )
+    tag_rows = (await session.execute(tag_stmt)).all()
+
+    tags = [
+        SearchTagResult(
+            id=str(row.Tag.id),
+            slug=row.Tag.slug,
+            name=row.Tag.name,
+            color=row.Tag.color,
+            community_slug=row.comm_slug,
+            usage_count=row.Tag.usage_count,
+        )
+        for row in tag_rows
+    ]
+
+    return SearchResponse(posts=posts, communities=communities, users=users, tags=tags)
