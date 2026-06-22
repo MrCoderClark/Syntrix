@@ -33,8 +33,26 @@ export default function HomePage() {
   const [sort, setSort] = useState<SortMode>("hot");
   const [period, setPeriod] = useState<Period>("all");
   const [posts, setPosts] = useState<PostItem[]>([]);
+  const [postVotes, setPostVotes] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  async function fetchPostVotes(postIds: string[]) {
+    if (postIds.length === 0) return;
+    const params = new URLSearchParams({
+      target_type: "post",
+      target_ids: postIds.join(","),
+    });
+    try {
+      const res = await fetch(`/api/votes/mine?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPostVotes(data.votes ?? {});
+      }
+    } catch {
+      /* ignore — votes default to 0 */
+    }
+  }
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -45,7 +63,9 @@ export default function HomePage() {
       const res = await fetch(`/api/feed?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        setPosts(data.posts ?? []);
+        const fetchedPosts = data.posts ?? [];
+        setPosts(fetchedPosts);
+        await fetchPostVotes(fetchedPosts.map((p: PostItem) => p.id));
       } else {
         setError(true);
       }
@@ -102,7 +122,7 @@ export default function HomePage() {
                     targetType="post"
                     targetId={post.id}
                     score={post.score}
-                    userVote={0}
+                    userVote={postVotes[post.id] ?? 0}
                   />
                 </div>
                 <Link
