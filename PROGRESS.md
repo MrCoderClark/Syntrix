@@ -6,11 +6,11 @@ Track build progress through Syntrix. Update this file as sections complete
 ## Current state — read this first
 
 > **Phase 2 is complete.** Phase 3 (Real-time Chat) is **in progress**.
-> Subsystem 1 (WS Gateway & Presence) is merged. Subsystem 2 (Chat Rooms &
-> Messages) is implementation-complete on `feat/chat-rooms-messages`, pending merge.
+> Subsystems 1 (WS Gateway & Presence) and 2 (Chat Rooms & Messages) are merged.
+> Subsystem 3 (Private Rooms, DMs & Private Communities) is next — planning phase.
 >
-> **Current branch:** `feat/chat-rooms-messages`
-> **Next action:** user reviews, pushes, opens PR, merges Section 22 to `main`.
+> **Current branch:** `main`
+> **Next action:** write plan for Section 23 (Private Rooms, DMs & Private Communities), then branch.
 
 ## Convention
 - `[ ]` = Not started
@@ -56,13 +56,13 @@ Phase 3 is decomposed into 4 subsystems, each with its own spec → plan → imp
 
 **Subsystems:**
 1. WS Gateway & Presence Infrastructure — merged
-2. Chat Rooms & Messages — implementation complete, pending merge
+2. Chat Rooms & Messages — merged
 3. Private Rooms, DMs & Private Communities — not yet planned
 4. Chat UI & Polish — not yet planned
 
 | # | Status | Branch | Ships |
 |---|---|---|---|
 | 21 | `[x]` | `feat/ws-gateway-presence` | WS gateway, Redis, connection manager, presence system |
-| 22 | `[-]` | `feat/chat-rooms-messages` | Chat rooms, messages, rich content, history |
+| 22 | `[x]` | `feat/chat-rooms-messages` | Chat rooms, messages, rich content, history |
 | 23 | `[ ]` | TBD | Private rooms, DMs, invites, private communities |
 | 24 | `[ ]` | TBD | Chat UI, room list, composer, presence indicators, search |
