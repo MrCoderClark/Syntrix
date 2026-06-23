@@ -27,7 +27,7 @@ def upgrade() -> None:
         sa.Column("target_id", sa.UUID(), nullable=False),
         sa.Column("invited_by", sa.UUID(), nullable=False),
         sa.Column("invited_user_id", sa.UUID(), nullable=False),
-        sa.Column("status", sa.Text(), nullable=False),
+        sa.Column("status", sa.Text(), server_default=sa.text("'pending'"), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
