@@ -15,6 +15,7 @@ from app.posts.renderer import render_tiptap_json
 from app.redis import publish_event
 
 from .schemas import (
+    AddRoomMemberRequest,
     CreateRoomRequest,
     EditMessageRequest,
     MessageResponse,
@@ -66,6 +67,8 @@ async def _require_room_access(
             raise HTTPException(status_code=403, detail="Not a member of this room")
     elif room.community_id:
         await _require_membership(session, room.community_id, user_id)
+    else:
+        raise HTTPException(status_code=403, detail="Cannot access this room")
 
 
 def _room_response(room: ChatRoom) -> RoomResponse:
@@ -408,7 +411,7 @@ async def list_room_members(
 @router.post("/api/rooms/{room_id}/members", status_code=201)
 async def add_room_member(
     room_id: uuid.UUID,
-    user_id: uuid.UUID,
+    body: AddRoomMemberRequest,
     user: CurrentUser,
     session: AsyncSession = Depends(get_session),
 ):
@@ -442,7 +445,7 @@ async def add_room_member(
         raise HTTPException(status_code=403, detail="Not authorized to add members")
 
     # Check target user exists
-    target = await session.get(User, user_id)
+    target = await session.get(User, body.user_id)
     if not target:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -450,13 +453,13 @@ async def add_room_member(
     existing = await session.execute(
         select(ChatRoomMember).where(
             ChatRoomMember.room_id == room_id,
-            ChatRoomMember.user_id == user_id,
+            ChatRoomMember.user_id == body.user_id,
         )
     )
     if existing.scalar_one_or_none():
         return {"status": "already_member"}
 
-    session.add(ChatRoomMember(room_id=room_id, user_id=user_id, added_by=user.id))
+    session.add(ChatRoomMember(room_id=room_id, user_id=body.user_id, added_by=user.id))
     await session.flush()
     return {"status": "added"}
 
@@ -485,6 +488,17 @@ async def remove_room_member(
         cm = community_membership_result.scalar_one_or_none()
         if cm and cm.role in ("mod", "owner"):
             is_privileged = True
+
+    # For private rooms, requester must also be a room member (unless they're admin)
+    if (room.is_private or room.is_dm) and not is_self and not is_privileged:
+        own_rm = await session.execute(
+            select(ChatRoomMember).where(
+                ChatRoomMember.room_id == room_id,
+                ChatRoomMember.user_id == user.id,
+            )
+        )
+        if not own_rm.scalar_one_or_none():
+            raise HTTPException(status_code=403, detail="Not a member of this room")
 
     if not is_self and not is_privileged:
         raise HTTPException(status_code=403, detail="Not authorized to remove members")

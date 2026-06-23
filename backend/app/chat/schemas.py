@@ -55,3 +55,7 @@ class MessageResponse(BaseModel):
 
 class EditMessageRequest(BaseModel):
     body_json: dict
+
+
+class AddRoomMemberRequest(BaseModel):
+    user_id: uuid.UUID
