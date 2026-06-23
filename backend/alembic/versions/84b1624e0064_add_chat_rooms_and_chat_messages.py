@@ -28,7 +28,7 @@ def upgrade() -> None:
         sa.Column("slug", sa.Text(), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("is_default", sa.Boolean(), server_default=sa.text("false"), nullable=False),
-        sa.Column("created_by", sa.UUID(), nullable=False),
+        sa.Column("created_by", sa.UUID(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
