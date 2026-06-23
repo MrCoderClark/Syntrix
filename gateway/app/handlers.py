@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING
 
 from app.protocol import (
     PRESENCE_UPDATE,
+    ROOM_SUBSCRIBE,
+    ROOM_UNSUBSCRIBE,
     TYPING_START,
     TYPING_STOP,
     Envelope,
@@ -21,6 +23,7 @@ async def handle_client_message(
     connections: ConnectionManager,
     presence: PresenceManager,
     redis_publish: object,  # async callable(channel, data)
+    pubsub_listener: object = None,  # PubSubListener, optional for backwards compat
 ) -> None:
     if envelope.type == TYPING_START:
         room_id = envelope.payload.get("room_id")
@@ -51,6 +54,23 @@ async def handle_client_message(
             "custom_status": custom or "",
         })
         await redis_publish(f"syntrix:presence:{user_id}", msg)
+
+    elif envelope.type == ROOM_SUBSCRIBE:
+        room_id = envelope.payload.get("room_id")
+        if not room_id:
+            return
+        connections.subscribe_room(room_id, user_id)
+        if pubsub_listener:
+            await pubsub_listener.subscribe_room(room_id)
+
+    elif envelope.type == ROOM_UNSUBSCRIBE:
+        room_id = envelope.payload.get("room_id")
+        if not room_id:
+            return
+        connections.unsubscribe_room(room_id, user_id)
+        # Only unsub from Redis if no other users in this room on this gateway
+        if not connections.get_room_users(room_id) and pubsub_listener:
+            await pubsub_listener.unsubscribe_room(room_id)
 
     else:
         # Forward to Redis for backend processing

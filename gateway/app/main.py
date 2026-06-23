@@ -94,6 +94,7 @@ async def ws_endpoint(websocket: WebSocket) -> None:
                 connections,
                 _presence,
                 _redis.publish,
+                pubsub_listener=_pubsub_listener,
             )
     except Exception:
         logger.exception("Unexpected error in ws_endpoint for user %s", user_id)
