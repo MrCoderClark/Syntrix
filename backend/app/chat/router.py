@@ -264,6 +264,11 @@ async def edit_message(
     if msg.deleted_at:
         raise HTTPException(status_code=400, detail="Cannot edit a deleted message")
 
+    room = await session.get(ChatRoom, msg.room_id)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    await _require_membership(session, room.community_id, user.id)
+
     msg.body_json = body.body_json
     msg.body_html = render_tiptap_json(body.body_json)
     msg.edited_at = datetime.now(UTC)

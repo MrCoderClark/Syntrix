@@ -92,6 +92,22 @@ def upgrade() -> None:
         schema="syntrix",
     )
 
+    # Backfill: create a default #general room for every existing community
+    op.execute(
+        sa.text(
+            """
+INSERT INTO syntrix.chat_rooms
+    (id, community_id, name, slug, description, is_default, created_by, created_at)
+SELECT gen_random_uuid(), c.id, 'general', 'general', NULL, true, c.owner_id, now()
+FROM syntrix.communities c
+WHERE NOT EXISTS (
+    SELECT 1 FROM syntrix.chat_rooms cr
+    WHERE cr.community_id = c.id AND cr.is_default = true
+)
+"""
+        )
+    )
+
 
 def downgrade() -> None:
     op.drop_index("ix_chat_messages_room_created", table_name="chat_messages", schema="syntrix")
