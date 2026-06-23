@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     storage_bucket: str = Field(default="syntrix-uploads")
     storage_max_size_bytes: int = Field(default=8_388_608)
 
+    # Redis
+    redis_url: str = Field(default="redis://localhost:6379/0")
+
     # Base URL for OAuth callbacks
     oauth_redirect_base_url: str = Field(default="http://127.0.0.1:8001")
 

@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -11,6 +13,7 @@ from app.feeds.router import router as feeds_router
 from app.posts.og import router as og_router
 from app.posts.router import router as posts_router
 from app.profiles.router import router as profiles_router
+from app.redis import close_redis
 from app.reputation.router import router as reputation_router
 from app.search.router import router as search_router
 from app.similarity.router import router as similarity_router
@@ -20,7 +23,14 @@ from app.votes.router import router as votes_router
 
 settings = get_settings()
 
-app = FastAPI(title="Syntrix", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    await close_redis()
+
+
+app = FastAPI(title="Syntrix", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(SessionMiddleware, secret_key=settings.jwt_secret_key)
 
