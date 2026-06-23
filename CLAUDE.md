@@ -8,16 +8,17 @@ polish step.
 ## Start here — current state
 
 Phase 1 is **complete**. Phase 2 (Q&A Layer) is **complete**. Phase 3
-(Real-time Chat) is **in design**. The full spec lives in `PRD.md`. All
+(Real-time Chat) is **in progress**. The full spec lives in `PRD.md`. All
 design artifacts are archived under `docs/superpowers/mockups/` as HTML +
-retina PNG. Implementation plans (1–20) live in `.agent/plans/`.
+retina PNG. Implementation plans (1–21) live in `.agent/plans/`.
 
 Phase 3 is decomposed into 4 subsystems, each with its own spec → plan →
-implementation cycle. Subsystem 1 (WS Gateway & Presence) spec is approved.
+implementation cycle. Subsystem 1 (WS Gateway & Presence) is implementation-
+complete on `feat/ws-gateway-presence`, pending merge.
 
 **Completed sections:** 01–20 (scaffold through Phase 2 polish).
-**Current section:** Phase 3, Subsystem 1 — planning.
-**Next section:** Phase 3, Subsystem 1 implementation.
+**Current section:** 21 — WS Gateway & Presence (pending merge).
+**Next section:** Phase 3, Subsystem 2 — Chat Rooms & Messages (spec first).
 
 See `PROGRESS.md` for the full section checklist and current status.
 
@@ -49,8 +50,8 @@ as a hosted multi-tenant store; we are one tenant in the `syntrix` schema.
 - **Storage backend (Phase 1):** Supabase Storage (reused container) wrapped
   behind a `StorageBackend` interface so the app stays portable to other
   S3-compatible providers. Bucket: `syntrix-uploads`.
-- **Realtime (Phase 3):** decided in Phase 3 — Supabase Realtime vs. our own
-  FastAPI WebSocket gateway. No Phase 1 impact.
+- **Realtime (Phase 3):** own WebSocket gateway — standalone Starlette app
+  (`gateway/`, port 8002) with Redis pub/sub. Not Supabase Realtime.
 
 When Claude generates a migration, always inspect it before applying — confirm
 every CREATE/ALTER/DROP targets `syntrix.*`. If autogen produces an op that
@@ -58,11 +59,15 @@ touches another schema, that's a bug in the `include_object` filter, not an
 acceptable migration.
 - **Post editor:** TipTap (canonical storage = TipTap JSON); Shiki for code highlighting; markdown as paste/source-toggle alternate
 - **Object storage:** **Supabase Storage** — reused from the local Supabase Docker stack. Bucket `syntrix-uploads`. Wrapped behind a `StorageBackend` interface (methods: `sign_upload(key, mime, ttl)`, `finalize(key) -> (canonical_url, metadata)`, `move(src, dst)`, `delete(key)`). One implementation now (`SupabaseStorageBackend`); future implementations (`S3Backend`, `R2Backend`) can swap in without changing app code.
-- **Hosting (Phase 1):** all local — backend via `uv run uvicorn` on port 8001, frontend via `npm run dev` on port 3000. Supabase stays on Docker. Production deployment is a post-Phase 1 decision — code stays 12-factor so it can move anywhere.
+- **Hosting:** all local — backend on port 8001, gateway on port 8002, frontend on port 3000 (all via `uv run uvicorn` / `npm run dev`). Supabase + Redis stay on Docker. Production deployment is a post-Phase 1 decision — code stays 12-factor so it can move anywhere.
 - **Auth:** FastAPI owns identity. OAuth-only (GitHub, Google, Discord) via `authlib`. JWT in httpOnly + Secure + SameSite=Lax cookies. No password storage in Phase 1.
 - **Authz (defense in depth):** Next.js middleware verifies JWT signature + expiration only (no permission logic, no DB calls). FastAPI re-verifies the JWT and enforces every resource-level check (ownership, mod role, community membership, ban). Permission logic lives in one place: FastAPI.
 - **Image lifecycle:** browser uploads directly to Supabase Storage via short-lived signed URLs (5 min). Bytes never transit FastAPI. After upload, the browser pings `/uploads/finalize` — FastAPI validates content-type, strips EXIF, moves the object from `tmp/` to a permanent path, returns the canonical URL. On post submit, `post_attachments` links the object to the post. Images are deleted only on post-delete (cascade), on edit when removed from the TipTap doc, or as orphan-sweep of `tmp/` after 24h.
-- **Realtime (Phase 3):** TBD (WebSockets via FastAPI or a dedicated gateway)
+- **Realtime (Phase 3):** Standalone Starlette WebSocket gateway (`gateway/`,
+  port 8002). Redis pub/sub for cross-service messaging. Gateway verifies JWT
+  independently (same secret), manages connections in-memory, tracks presence in
+  Redis. Backend publishes events; gateway pushes to clients. Redis runs in the
+  Supabase Docker stack (`supabase-redis`, port 6379).
 
 ## Rules
 
@@ -155,9 +160,9 @@ is the version log.
 
 ## Phases (current scope)
 
-1. **Phase 1 — Foundation + Communities & Posts** *(in progress — see PROGRESS.md)*
-2. **Phase 2 — Q&A Layer** *(deferred)*
-3. **Phase 3 — Real-time Chat** *(deferred)*
+1. **Phase 1 — Foundation + Communities & Posts** *(complete)*
+2. **Phase 2 — Q&A Layer** *(complete)*
+3. **Phase 3 — Real-time Chat** *(in progress — Subsystem 1 done, 2–4 remaining)*
 
 Phase 4 (Steam-style gaming profile) was explicitly dropped from scope. Do not
 re-introduce it without the user's approval.

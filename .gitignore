@@ -2,6 +2,9 @@
 
 # Python
 backend/.venv/
+
+# Gateway
+gateway/.venv/
 __pycache__/
 *.pyc
 .pytest_cache/

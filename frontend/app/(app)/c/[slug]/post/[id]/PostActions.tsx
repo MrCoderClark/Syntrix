@@ -190,7 +190,7 @@ export function PostActions({
             </div>
             <div className={styles.dupModalActions}>
               <Button
-                variant="secondary"
+                variant="ghost"
                 onClick={() => {
                   setShowDupModal(false);
                   setDupSearch("");

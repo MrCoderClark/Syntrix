@@ -13,16 +13,21 @@ help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: dev
-dev: ## Start backend + frontend (runs in foreground)
-	@echo "Starting backend on :8001 and frontend on :3000..."
+dev: ## Start backend + gateway + frontend (runs in foreground)
+	@echo "Starting backend on :8001, gateway on :8002, and frontend on :3000..."
 	@trap 'kill 0' EXIT; \
 		(cd backend && uv run uvicorn app.main:app --reload --port 8001) & \
+		(cd gateway && uv run uvicorn app.main:app --reload --port 8002) & \
 		(cd frontend && npm run dev) & \
 		wait
 
 .PHONY: backend-dev
 backend-dev: ## Start backend only
 	cd backend && uv run uvicorn app.main:app --reload --port 8001
+
+.PHONY: gateway-dev
+gateway-dev: ## Start gateway only
+	cd gateway && uv run uvicorn app.main:app --reload --port 8002
 
 .PHONY: frontend-dev
 frontend-dev: ## Start frontend only
@@ -31,16 +36,19 @@ frontend-dev: ## Start frontend only
 .PHONY: test
 test: ## Run all tests
 	cd backend && uv run pytest -v
+	cd gateway && uv run pytest -v
 
 .PHONY: lint
-lint: ## Lint backend + frontend
+lint: ## Lint backend + gateway + frontend
 	cd backend && uv run ruff check .
+	cd gateway && uv run ruff check .
 	cd frontend && npm run lint
 	cd frontend && npm run fmt:check
 
 .PHONY: fmt
-fmt: ## Format backend + frontend
+fmt: ## Format backend + gateway + frontend
 	cd backend && uv run ruff check --fix . && uv run black .
+	cd gateway && uv run ruff check --fix . && uv run black .
 	cd frontend && npm run fmt
 
 .PHONY: precommit-install
