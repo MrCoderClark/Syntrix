@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import CurrentUser
+from app.auth.rate_limit import check_rate_limit
 from app.db.session import get_session
 from app.models import ChatMessage, ChatRoom, Community, CommunityMembership, User
 from app.posts.renderer import render_tiptap_json
@@ -179,6 +180,17 @@ async def send_message(
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
     await _require_membership(session, room.community_id, user.id)
+
+    conn = await session.connection()
+    allowed = await check_rate_limit(
+        conn,
+        key=f"chat:send:{user.id}",
+        max_tokens=120,
+        refill_rate=120 / 3600,
+        cost=1,
+    )
+    if not allowed:
+        raise HTTPException(status_code=429, detail="Message rate limit exceeded")
 
     body_html = render_tiptap_json(body.body_json)
 
