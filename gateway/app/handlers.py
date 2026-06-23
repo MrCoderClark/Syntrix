@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from app.protocol import (
-    CLIENT_LOCAL_TYPES,
     PRESENCE_UPDATE,
     TYPING_START,
     TYPING_STOP,
@@ -38,6 +37,9 @@ async def handle_client_message(
         presence.stop_typing(user_id, room_id)
         msg = make_envelope(TYPING_STOP, {"user_id": user_id}, room_id=room_id)
         await _broadcast_to_room(connections, room_id, msg, exclude=user_id)
+
+    elif envelope.type == "ping":
+        return
 
     elif envelope.type == PRESENCE_UPDATE:
         status = envelope.payload.get("status", "online")
