@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import CurrentUser, OptionalUser
 from app.db.session import get_session
-from app.models import Community, CommunityMembership, CommunityRequest, User
+from app.models import ChatRoom, Community, CommunityMembership, CommunityRequest, User
 
 from .schemas import (
     CommunityCreateRequest,
@@ -127,6 +127,16 @@ async def create_community(
     session.add(community)
     await session.flush()
     session.add(CommunityMembership(community_id=community.id, user_id=user.id, role="owner"))
+    await session.flush()
+    session.add(
+        ChatRoom(
+            community_id=community.id,
+            name="general",
+            slug="general",
+            is_default=True,
+            created_by=user.id,
+        )
+    )
     await session.flush()
     return _to_response(community, 1)
 

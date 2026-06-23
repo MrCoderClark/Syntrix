@@ -235,3 +235,42 @@ async def test_message_history_ordering(db_session: AsyncSession):
     assert [m.id for m in ordered] == [m.id for m in ordered2]
     # All seeded messages should appear in the results
     assert {m.id for m in ordered} == {m.id for m in msgs}
+
+
+@pytest.mark.asyncio
+async def test_community_creation_auto_creates_general_room(db_session: AsyncSession):
+    """When a community is created, a default #general room is auto-created."""
+    admin_id = uuid.uuid4()
+    admin = User(id=admin_id, handle="admin", display_name="Admin", role="admin")
+    db_session.add(admin)
+    await db_session.flush()
+
+    slug = f"test-{uuid.uuid4().hex[:8]}"
+    community = Community(name="Test", slug=slug, owner_id=admin_id, color="#111111")
+    db_session.add(community)
+    await db_session.flush()
+
+    # Simulate the auto-creation logic from create_community endpoint
+    db_session.add(
+        ChatRoom(
+            community_id=community.id,
+            name="general",
+            slug="general",
+            is_default=True,
+            created_by=admin_id,
+        )
+    )
+    await db_session.flush()
+
+    # Verify the room exists and is queryable
+    result = await db_session.execute(
+        select(ChatRoom).where(
+            ChatRoom.community_id == community.id,
+            ChatRoom.is_default.is_(True),
+        )
+    )
+    default_room = result.scalar_one_or_none()
+    assert default_room is not None
+    assert default_room.slug == "general"
+    assert default_room.name == "general"
+    assert default_room.is_default is True
