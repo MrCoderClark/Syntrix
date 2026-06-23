@@ -487,3 +487,76 @@ async def test_list_rooms_filters_private_for_non_members(db_session: AsyncSessi
     )
     rooms_for_admin = result2.scalars().all()
     assert len(rooms_for_admin) == 2
+
+
+@pytest.mark.asyncio
+async def test_dm_room_created_with_both_members(db_session: AsyncSession):
+    """Creating a DM room adds both users as members."""
+    user1_id, user2_id = uuid.uuid4(), uuid.uuid4()
+    db_session.add_all(
+        [
+            User(
+                id=user1_id,
+                handle=f"u1-{uuid.uuid4().hex[:6]}",
+                display_name="User 1",
+                role="member",
+            ),
+            User(
+                id=user2_id,
+                handle=f"u2-{uuid.uuid4().hex[:6]}",
+                display_name="User 2",
+                role="member",
+            ),
+        ]
+    )
+    await db_session.flush()
+
+    room = ChatRoom(
+        community_id=None,
+        name="dm",
+        slug=f"dm-{uuid.uuid4().hex[:12]}",
+        is_dm=True,
+        is_private=True,
+        created_by=user1_id,
+    )
+    db_session.add(room)
+    await db_session.flush()
+
+    db_session.add_all(
+        [
+            ChatRoomMember(room_id=room.id, user_id=user1_id, added_by=user1_id),
+            ChatRoomMember(room_id=room.id, user_id=user2_id, added_by=user1_id),
+        ]
+    )
+    await db_session.flush()
+
+    result = await db_session.execute(
+        select(ChatRoomMember).where(ChatRoomMember.room_id == room.id)
+    )
+    members = result.scalars().all()
+    assert len(members) == 2
+    assert {m.user_id for m in members} == {user1_id, user2_id}
+
+
+@pytest.mark.asyncio
+async def test_dm_room_has_no_community(db_session: AsyncSession):
+    """DM rooms have community_id=NULL."""
+    user_id = uuid.uuid4()
+    db_session.add(
+        User(id=user_id, handle=f"u-{uuid.uuid4().hex[:6]}", display_name="U", role="member")
+    )
+    await db_session.flush()
+
+    room = ChatRoom(
+        community_id=None,
+        name="dm",
+        slug=f"dm-{uuid.uuid4().hex[:12]}",
+        is_dm=True,
+        is_private=True,
+        created_by=user_id,
+    )
+    db_session.add(room)
+    await db_session.flush()
+
+    assert room.community_id is None
+    assert room.is_dm is True

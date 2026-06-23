@@ -59,3 +59,13 @@ class EditMessageRequest(BaseModel):
 
 class AddRoomMemberRequest(BaseModel):
     user_id: uuid.UUID
+
+
+class DMListItem(BaseModel):
+    room_id: uuid.UUID
+    other_user_id: uuid.UUID
+    other_user_handle: str
+    other_user_display_name: str
+    other_user_avatar_url: str | None
+    last_message_body_html: str | None
+    last_message_at: datetime | None

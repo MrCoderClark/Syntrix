@@ -17,6 +17,7 @@ from app.redis import publish_event
 from .schemas import (
     AddRoomMemberRequest,
     CreateRoomRequest,
+    DMListItem,
     EditMessageRequest,
     MessageResponse,
     RoomMemberResponse,
@@ -516,3 +517,141 @@ async def remove_room_member(
     await session.delete(member)
     await session.flush()
     return {"status": "removed"}
+
+
+# ---------------------------------------------------------------------------
+# DM endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/api/dms/{target_user_id}", response_model=RoomResponse)
+async def get_or_create_dm(
+    target_user_id: uuid.UUID,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+):
+    if target_user_id == user.id:
+        raise HTTPException(status_code=400, detail="Cannot DM yourself")
+
+    target = await session.get(User, target_user_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Find existing DM room between these two users
+    my_rooms = select(ChatRoomMember.room_id).where(ChatRoomMember.user_id == user.id).subquery()
+    their_rooms = (
+        select(ChatRoomMember.room_id).where(ChatRoomMember.user_id == target_user_id).subquery()
+    )
+    result = await session.execute(
+        select(ChatRoom).where(
+            ChatRoom.is_dm.is_(True),
+            ChatRoom.id.in_(select(my_rooms.c.room_id)),
+            ChatRoom.id.in_(select(their_rooms.c.room_id)),
+        )
+    )
+    existing = result.scalar_one_or_none()
+    if existing:
+        return _room_response(existing)
+
+    # Create new DM room
+    room = ChatRoom(
+        community_id=None,
+        name=f"dm-{user.id}-{target_user_id}",
+        slug=f"dm-{uuid.uuid4().hex[:12]}",
+        is_dm=True,
+        is_private=True,
+        created_by=user.id,
+    )
+    session.add(room)
+    await session.flush()
+
+    session.add_all(
+        [
+            ChatRoomMember(room_id=room.id, user_id=user.id, added_by=user.id),
+            ChatRoomMember(room_id=room.id, user_id=target_user_id, added_by=user.id),
+        ]
+    )
+    await session.flush()
+    return _room_response(room)
+
+
+@router.get("/api/dms", response_model=list[DMListItem])
+async def list_dms(
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+):
+    from sqlalchemy import desc
+    from sqlalchemy import func as sa_func
+
+    # Find all DM rooms the user belongs to
+    my_dm_rooms = (
+        select(ChatRoomMember.room_id)
+        .join(ChatRoom, ChatRoomMember.room_id == ChatRoom.id)
+        .where(
+            ChatRoomMember.user_id == user.id,
+            ChatRoom.is_dm.is_(True),
+        )
+    ).subquery()
+
+    # For each DM room, find the other user
+    other_member = (
+        select(
+            ChatRoomMember.room_id,
+            ChatRoomMember.user_id.label("other_user_id"),
+        ).where(
+            ChatRoomMember.room_id.in_(select(my_dm_rooms.c.room_id)),
+            ChatRoomMember.user_id != user.id,
+        )
+    ).subquery()
+
+    # Get the latest message per DM room
+    latest_msg = (
+        select(
+            ChatMessage.room_id,
+            sa_func.max(ChatMessage.created_at).label("last_at"),
+        )
+        .where(ChatMessage.room_id.in_(select(my_dm_rooms.c.room_id)))
+        .group_by(ChatMessage.room_id)
+    ).subquery()
+
+    result = await session.execute(
+        select(
+            other_member.c.room_id,
+            other_member.c.other_user_id,
+            User.handle,
+            User.display_name,
+            User.avatar_url,
+            latest_msg.c.last_at,
+        )
+        .join(User, other_member.c.other_user_id == User.id)
+        .outerjoin(latest_msg, other_member.c.room_id == latest_msg.c.room_id)
+        .order_by(desc(latest_msg.c.last_at).nulls_last())
+    )
+
+    items = []
+    for row in result.all():
+        last_body = None
+        if row.last_at:
+            msg_result = await session.execute(
+                select(ChatMessage.body_html)
+                .where(
+                    ChatMessage.room_id == row.room_id,
+                    ChatMessage.created_at == row.last_at,
+                )
+                .limit(1)
+            )
+            msg_row = msg_result.first()
+            last_body = msg_row.body_html if msg_row else None
+
+        items.append(
+            DMListItem(
+                room_id=row.room_id,
+                other_user_id=row.other_user_id,
+                other_user_handle=row.handle,
+                other_user_display_name=row.display_name,
+                other_user_avatar_url=row.avatar_url,
+                last_message_body_html=last_body,
+                last_message_at=row.last_at,
+            )
+        )
+    return items
