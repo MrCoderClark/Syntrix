@@ -160,6 +160,7 @@ async def delete_room(
     if membership.role not in ("mod", "owner") and user.role != "admin":
         raise HTTPException(status_code=403, detail="Only mods, owners, or admins can delete rooms")
     await session.delete(room)
+    await session.flush()
 
 
 # ---------------------------------------------------------------------------
@@ -213,7 +214,7 @@ async def message_history(
         raise HTTPException(status_code=404, detail="Room not found")
     await _require_membership(session, room.community_id, user.id)
 
-    limit = min(limit, MESSAGE_PAGE_SIZE)
+    limit = max(1, min(limit, MESSAGE_PAGE_SIZE))
     stmt = (
         select(ChatMessage, User)
         .outerjoin(User, ChatMessage.author_id == User.id)
@@ -225,11 +226,12 @@ async def message_history(
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid cursor") from None
         cursor_msg = await session.get(ChatMessage, cursor_id)
-        if cursor_msg:
-            stmt = stmt.where(
-                (ChatMessage.created_at < cursor_msg.created_at)
-                | ((ChatMessage.created_at == cursor_msg.created_at) & (ChatMessage.id < cursor_id))
-            )
+        if not cursor_msg:
+            return []
+        stmt = stmt.where(
+            (ChatMessage.created_at < cursor_msg.created_at)
+            | ((ChatMessage.created_at == cursor_msg.created_at) & (ChatMessage.id < cursor_id))
+        )
     stmt = stmt.order_by(ChatMessage.created_at.desc(), ChatMessage.id.desc()).limit(limit)
     result = await session.execute(stmt)
     return [_message_response(row.ChatMessage, author=row.User) for row in result.all()]
@@ -278,6 +280,8 @@ async def delete_message(
         raise HTTPException(status_code=404, detail="Message not found")
 
     room = await session.get(ChatRoom, msg.room_id)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
     membership = await _require_membership(session, room.community_id, user.id)
 
     is_author = msg.author_id == user.id
