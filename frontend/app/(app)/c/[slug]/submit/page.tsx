@@ -320,7 +320,7 @@ export default function SubmitPostPage() {
               ))}
             </div>
             <div className={styles.modalActions}>
-              <Button variant="secondary" onClick={() => setShowModal(false)}>
+              <Button variant="ghost" onClick={() => setShowModal(false)}>
                 Cancel
               </Button>
               <Button
