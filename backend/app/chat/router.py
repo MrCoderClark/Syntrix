@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.deps import CurrentUser
 from app.auth.rate_limit import check_rate_limit
 from app.db.session import get_session
-from app.models import ChatMessage, ChatRoom, Community, CommunityMembership, User
+from app.models import ChatMessage, ChatRoom, ChatRoomMember, Community, CommunityMembership, User
 from app.posts.renderer import render_tiptap_json
 from app.redis import publish_event
 
@@ -18,6 +18,7 @@ from .schemas import (
     CreateRoomRequest,
     EditMessageRequest,
     MessageResponse,
+    RoomMemberResponse,
     RoomResponse,
     SendMessageRequest,
 )
@@ -44,6 +45,29 @@ async def _require_membership(
     return membership
 
 
+async def _require_room_access(
+    session: AsyncSession,
+    room: ChatRoom,
+    user_id: uuid.UUID,
+) -> None:
+    """Check room access.
+
+    For private rooms/DMs, verify chat_room_members.
+    For public rooms, verify community membership.
+    """
+    if room.is_private or room.is_dm:
+        result = await session.execute(
+            select(ChatRoomMember).where(
+                ChatRoomMember.room_id == room.id,
+                ChatRoomMember.user_id == user_id,
+            )
+        )
+        if not result.scalar_one_or_none():
+            raise HTTPException(status_code=403, detail="Not a member of this room")
+    elif room.community_id:
+        await _require_membership(session, room.community_id, user_id)
+
+
 def _room_response(room: ChatRoom) -> RoomResponse:
     return RoomResponse(
         id=room.id,
@@ -52,6 +76,8 @@ def _room_response(room: ChatRoom) -> RoomResponse:
         slug=room.slug,
         description=room.description,
         is_default=room.is_default,
+        is_private=room.is_private,
+        is_dm=room.is_dm,
         created_by=room.created_by,
         created_at=room.created_at,
     )
@@ -91,7 +117,16 @@ async def list_rooms(
     await _require_membership(session, community_id, user.id)
     result = await session.execute(
         select(ChatRoom)
-        .where(ChatRoom.community_id == community_id)
+        .where(
+            ChatRoom.community_id == community_id,
+            ChatRoom.is_dm.is_(False),
+        )
+        .where(
+            (ChatRoom.is_private.is_(False))
+            | ChatRoom.id.in_(
+                select(ChatRoomMember.room_id).where(ChatRoomMember.user_id == user.id)
+            )
+        )
         .order_by(ChatRoom.is_default.desc(), ChatRoom.name)
     )
     return [_room_response(r) for r in result.scalars().all()]
@@ -126,10 +161,16 @@ async def create_room(
         name=body.name,
         slug=body.slug,
         description=body.description,
+        is_private=body.is_private,
         created_by=user.id,
     )
     session.add(room)
     await session.flush()
+
+    if room.is_private:
+        session.add(ChatRoomMember(room_id=room.id, user_id=user.id, added_by=user.id))
+        await session.flush()
+
     return _room_response(room)
 
 
@@ -142,7 +183,7 @@ async def get_room(
     room = await session.get(ChatRoom, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    await _require_membership(session, room.community_id, user.id)
+    await _require_room_access(session, room, user.id)
     return _room_response(room)
 
 
@@ -179,7 +220,7 @@ async def send_message(
     room = await session.get(ChatRoom, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    await _require_membership(session, room.community_id, user.id)
+    await _require_room_access(session, room, user.id)
 
     conn = await session.connection()
     allowed = await check_rate_limit(
@@ -224,7 +265,7 @@ async def message_history(
     room = await session.get(ChatRoom, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    await _require_membership(session, room.community_id, user.id)
+    await _require_room_access(session, room, user.id)
 
     limit = max(1, min(limit, MESSAGE_PAGE_SIZE))
     stmt = (
@@ -267,7 +308,7 @@ async def edit_message(
     room = await session.get(ChatRoom, msg.room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    await _require_membership(session, room.community_id, user.id)
+    await _require_room_access(session, room, user.id)
 
     msg.body_json = body.body_json
     msg.body_html = render_tiptap_json(body.body_json)
@@ -299,10 +340,20 @@ async def delete_message(
     room = await session.get(ChatRoom, msg.room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    membership = await _require_membership(session, room.community_id, user.id)
+    await _require_room_access(session, room, user.id)
 
     is_author = msg.author_id == user.id
-    is_mod = membership.role in ("mod", "owner") or user.role == "admin"
+    is_mod = user.role == "admin"
+    if room.community_id and not is_author:
+        community_membership = await session.execute(
+            select(CommunityMembership).where(
+                CommunityMembership.community_id == room.community_id,
+                CommunityMembership.user_id == user.id,
+            )
+        )
+        cm = community_membership.scalar_one_or_none()
+        if cm and cm.role in ("mod", "owner"):
+            is_mod = True
     if not is_author and not is_mod:
         raise HTTPException(status_code=403, detail="Cannot delete this message")
 
@@ -317,3 +368,137 @@ async def delete_message(
         room_id=str(msg.room_id),
     )
     return {"status": "deleted"}
+
+
+# ---------------------------------------------------------------------------
+# Room member management endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/api/rooms/{room_id}/members", response_model=list[RoomMemberResponse])
+async def list_room_members(
+    room_id: uuid.UUID,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+):
+    room = await session.get(ChatRoom, room_id)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    await _require_room_access(session, room, user.id)
+
+    result = await session.execute(
+        select(ChatRoomMember, User)
+        .join(User, ChatRoomMember.user_id == User.id)
+        .where(ChatRoomMember.room_id == room_id)
+        .order_by(ChatRoomMember.created_at)
+    )
+    return [
+        RoomMemberResponse(
+            user_id=row.User.id,
+            handle=row.User.handle,
+            display_name=row.User.display_name,
+            avatar_url=row.User.avatar_url,
+            added_by=row.ChatRoomMember.added_by,
+            created_at=row.ChatRoomMember.created_at,
+        )
+        for row in result.all()
+    ]
+
+
+@router.post("/api/rooms/{room_id}/members", status_code=201)
+async def add_room_member(
+    room_id: uuid.UUID,
+    user_id: uuid.UUID,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+):
+    room = await session.get(ChatRoom, room_id)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    if not room.is_private and not room.is_dm:
+        raise HTTPException(status_code=400, detail="Can only add members to private rooms")
+
+    # Must be a room member or community mod/owner/admin to add members
+    is_privileged = user.role == "admin"
+    if room.community_id:
+        community_membership_result = await session.execute(
+            select(CommunityMembership).where(
+                CommunityMembership.community_id == room.community_id,
+                CommunityMembership.user_id == user.id,
+            )
+        )
+        cm = community_membership_result.scalar_one_or_none()
+        if cm and cm.role in ("mod", "owner"):
+            is_privileged = True
+
+    # Room members can also add to rooms they belong to
+    own_rm = await session.execute(
+        select(ChatRoomMember).where(
+            ChatRoomMember.room_id == room_id,
+            ChatRoomMember.user_id == user.id,
+        )
+    )
+    if not own_rm.scalar_one_or_none() and not is_privileged:
+        raise HTTPException(status_code=403, detail="Not authorized to add members")
+
+    # Check target user exists
+    target = await session.get(User, user_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check not already a member
+    existing = await session.execute(
+        select(ChatRoomMember).where(
+            ChatRoomMember.room_id == room_id,
+            ChatRoomMember.user_id == user_id,
+        )
+    )
+    if existing.scalar_one_or_none():
+        return {"status": "already_member"}
+
+    session.add(ChatRoomMember(room_id=room_id, user_id=user_id, added_by=user.id))
+    await session.flush()
+    return {"status": "added"}
+
+
+@router.delete("/api/rooms/{room_id}/members/{target_user_id}", status_code=200)
+async def remove_room_member(
+    room_id: uuid.UUID,
+    target_user_id: uuid.UUID,
+    user: CurrentUser,
+    session: AsyncSession = Depends(get_session),
+):
+    room = await session.get(ChatRoom, room_id)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    # Can remove self, or mod/owner/admin can remove others
+    is_self = target_user_id == user.id
+    is_privileged = user.role == "admin"
+    if room.community_id and not is_self:
+        community_membership_result = await session.execute(
+            select(CommunityMembership).where(
+                CommunityMembership.community_id == room.community_id,
+                CommunityMembership.user_id == user.id,
+            )
+        )
+        cm = community_membership_result.scalar_one_or_none()
+        if cm and cm.role in ("mod", "owner"):
+            is_privileged = True
+
+    if not is_self and not is_privileged:
+        raise HTTPException(status_code=403, detail="Not authorized to remove members")
+
+    result = await session.execute(
+        select(ChatRoomMember).where(
+            ChatRoomMember.room_id == room_id,
+            ChatRoomMember.user_id == target_user_id,
+        )
+    )
+    member = result.scalar_one_or_none()
+    if not member:
+        return {"status": "not_member"}
+
+    await session.delete(member)
+    await session.flush()
+    return {"status": "removed"}
