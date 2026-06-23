@@ -94,12 +94,16 @@ async def ws_endpoint(websocket: WebSocket) -> None:
                 connections,
                 _presence,
                 _redis.publish,
+                pubsub_listener=_pubsub_listener,
             )
     except Exception:
         logger.exception("Unexpected error in ws_endpoint for user %s", user_id)
     finally:
         expiry_task.cancel()
-        connections.remove(user_id, websocket)
+        orphaned_rooms = connections.remove(user_id, websocket)
+        for room_id in orphaned_rooms:
+            if not connections.get_room_users(room_id):
+                await _pubsub_listener.unsubscribe_room(room_id)
         if not connections.is_online(user_id):
             await _presence.remove(user_id)
             await _pubsub_listener.unsubscribe_user(user_id)

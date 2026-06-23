@@ -5,6 +5,8 @@ import pytest
 
 from app.protocol import (
     PRESENCE_UPDATE,
+    ROOM_SUBSCRIBE,
+    ROOM_UNSUBSCRIBE,
     TYPING_START,
     TYPING_STOP,
     Envelope,
@@ -57,3 +59,11 @@ def test_event_type_constants():
     assert TYPING_START == "typing.start"
     assert TYPING_STOP == "typing.stop"
     assert PRESENCE_UPDATE == "presence.update"
+
+
+def test_room_subscribe_constant():
+    assert ROOM_SUBSCRIBE == "room.subscribe"
+
+
+def test_room_unsubscribe_constant():
+    assert ROOM_UNSUBSCRIBE == "room.unsubscribe"

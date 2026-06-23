@@ -12,6 +12,8 @@ MESSAGE_DELETED = "message.deleted"
 TYPING_START = "typing.start"
 TYPING_STOP = "typing.stop"
 PRESENCE_UPDATE = "presence.update"
+ROOM_SUBSCRIBE = "room.subscribe"
+ROOM_UNSUBSCRIBE = "room.unsubscribe"
 ROOM_USER_JOINED = "room.user_joined"
 ROOM_USER_LEFT = "room.user_left"
 SYSTEM_INVITED = "system.invited"
@@ -19,7 +21,7 @@ SYSTEM_KICKED = "system.kicked"
 TOKEN_EXPIRING = "token_expiring"
 
 # Client → server message types the gateway handles locally
-CLIENT_LOCAL_TYPES = {TYPING_START, TYPING_STOP, PRESENCE_UPDATE}
+CLIENT_LOCAL_TYPES = {TYPING_START, TYPING_STOP, PRESENCE_UPDATE, ROOM_SUBSCRIBE, ROOM_UNSUBSCRIBE}
 
 
 class ProtocolError(Exception):

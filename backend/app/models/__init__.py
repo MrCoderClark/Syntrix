@@ -1,4 +1,5 @@
 from app.models.answer import Answer, AnswerVote
+from app.models.chat import ChatMessage, ChatRoom
 from app.models.comment import Comment
 from app.models.community import Community, CommunityMembership, CommunityRequest
 from app.models.oauth_identity import OAuthIdentity
@@ -14,6 +15,8 @@ __all__ = [
     "Answer",
     "AnswerVote",
     "Badge",
+    "ChatMessage",
+    "ChatRoom",
     "Comment",
     "CommentVote",
     "Community",
