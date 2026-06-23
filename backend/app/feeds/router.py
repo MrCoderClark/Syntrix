@@ -112,12 +112,17 @@ async def home_feed(
         stmt = stmt.where(Post.post_type == post_type)
 
     if user:
+        # Authenticated: show only posts from communities the user joined (not banned).
+        # INNER JOIN on membership implicitly excludes private communities they haven't joined.
         stmt = stmt.join(
             CommunityMembership,
             (CommunityMembership.community_id == Post.community_id)
             & (CommunityMembership.user_id == user.id)
             & (CommunityMembership.banned_at.is_(None)),
         )
+    else:
+        # Anonymous: exclude all private community posts
+        stmt = stmt.where(Community.is_private.is_(False))
 
     stmt = _apply_sort(stmt, sort, period)
     stmt = stmt.offset(offset).limit(limit + 1)
@@ -154,11 +159,26 @@ async def community_feed(
     post_type: str | None = None,
     limit: int = Query(default=PAGE_SIZE, le=100, ge=1),
     offset: int = Query(default=0, ge=0),
+    user: OptionalUser = None,
     session: AsyncSession = Depends(get_session),
 ):
     community = await session.get(Community, community_id)
     if not community:
         raise HTTPException(status_code=404, detail="Community not found")
+
+    if community.is_private:
+        # Private community feed: only accessible to active members
+        if not user:
+            raise HTTPException(status_code=404, detail="Community not found")
+        m_result = await session.execute(
+            select(CommunityMembership).where(
+                CommunityMembership.community_id == community_id,
+                CommunityMembership.user_id == user.id,
+                CommunityMembership.banned_at.is_(None),
+            )
+        )
+        if not m_result.scalar_one_or_none():
+            raise HTTPException(status_code=404, detail="Community not found")
 
     stmt = (
         select(Post, User)

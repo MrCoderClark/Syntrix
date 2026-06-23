@@ -116,3 +116,95 @@ async def test_owner_cannot_leave(db_conn: AsyncConnection):
             cookies={"access_token": admin["token"]},
         )
     assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_private_community_hidden_from_list(db_conn: AsyncConnection):
+    """Private communities do not appear in the public list."""
+    admin = await _seed_admin(db_conn)
+    pub_slug = f"pub-{uuid.uuid4().hex[:8]}"
+    priv_slug = f"priv-{uuid.uuid4().hex[:6]}"
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        await client.post(
+            "/api/communities",
+            json={"name": "Public Community", "slug": pub_slug},
+            cookies={"access_token": admin["token"]},
+        )
+        await client.post(
+            "/api/communities",
+            json={"name": "Private Community", "slug": priv_slug, "is_private": True},
+            cookies={"access_token": admin["token"]},
+        )
+        resp = await client.get("/api/communities")
+    assert resp.status_code == 200
+    slugs = {c["slug"] for c in resp.json()}
+    assert pub_slug in slugs
+    assert priv_slug not in slugs
+
+
+@pytest.mark.asyncio
+async def test_private_community_returns_404_to_non_member(db_conn: AsyncConnection):
+    """Non-members cannot view a private community — they get 404."""
+    admin = await _seed_admin(db_conn)
+    member = await _seed_member(db_conn)
+    priv_slug = f"priv-{uuid.uuid4().hex[:6]}"
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        await client.post(
+            "/api/communities",
+            json={"name": "Secret Club", "slug": priv_slug, "is_private": True},
+            cookies={"access_token": admin["token"]},
+        )
+        # Anonymous user gets 404
+        anon_resp = await client.get(f"/api/communities/{priv_slug}")
+        assert anon_resp.status_code == 404
+
+        # Non-member authenticated user gets 404
+        member_resp = await client.get(
+            f"/api/communities/{priv_slug}",
+            cookies={"access_token": member["token"]},
+        )
+        assert member_resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_private_community_visible_to_member(db_conn: AsyncConnection):
+    """Members of a private community can view it."""
+    admin = await _seed_admin(db_conn)
+    priv_slug = f"priv-{uuid.uuid4().hex[:6]}"
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        await client.post(
+            "/api/communities",
+            json={"name": "Secret Club", "slug": priv_slug, "is_private": True},
+            cookies={"access_token": admin["token"]},
+        )
+        # Admin who created the community is an owner/member — should see it
+        resp = await client.get(
+            f"/api/communities/{priv_slug}",
+            cookies={"access_token": admin["token"]},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["is_private"] is True
+
+
+@pytest.mark.asyncio
+async def test_join_private_community_blocked(db_conn: AsyncConnection):
+    """Direct join to a private community returns 403."""
+    admin = await _seed_admin(db_conn)
+    member = await _seed_member(db_conn)
+    priv_slug = f"priv-{uuid.uuid4().hex[:6]}"
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        await client.post(
+            "/api/communities",
+            json={"name": "Invite Only", "slug": priv_slug, "is_private": True},
+            cookies={"access_token": admin["token"]},
+        )
+        resp = await client.post(
+            f"/api/communities/{priv_slug}/join",
+            cookies={"access_token": member["token"]},
+        )
+    assert resp.status_code == 403
+    assert "invite" in resp.json()["detail"].lower()
