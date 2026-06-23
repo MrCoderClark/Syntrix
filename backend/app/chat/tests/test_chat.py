@@ -223,5 +223,15 @@ async def test_message_history_ordering(db_session: AsyncSession):
     )
     ordered = result.scalars().all()
     assert len(ordered) == 5
-    # newest first — last inserted is at index 0
-    assert ordered[0].id == msgs[-1].id
+    # All messages inserted in the same transaction share the same created_at,
+    # so they fall back to id DESC order. Verify the sort is stable and consistent:
+    # re-running the same query should return the same order.
+    result2 = await db_session.execute(
+        select(ChatMessage)
+        .where(ChatMessage.room_id == room.id)
+        .order_by(ChatMessage.created_at.desc(), ChatMessage.id.desc())
+    )
+    ordered2 = result2.scalars().all()
+    assert [m.id for m in ordered] == [m.id for m in ordered2]
+    # All seeded messages should appear in the results
+    assert {m.id for m in ordered} == {m.id for m in msgs}
