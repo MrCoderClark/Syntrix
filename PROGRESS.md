@@ -6,11 +6,12 @@ Track build progress through Syntrix. Update this file as sections complete
 ## Current state — read this first
 
 > **Phase 2 is complete.** Phase 3 (Real-time Chat) is **in progress**.
-> Subsystems 1–3 (WS Gateway & Presence, Chat Rooms & Messages, Private Rooms/DMs/Communities) are merged.
-> Subsystem 4 (Chat UI & Polish) is next.
+> Subsystems 1–4 are merged. Section 24 shipped the chat scaffold (room list,
+> message feed, composer, WS real-time). Section 25 adds the remaining chat
+> features and polish.
 >
 > **Current branch:** `main`
-> **Next action:** write plan for Section 24 (Chat UI & Polish), then branch.
+> **Next action:** write plan for Section 25 (Chat Features & Polish), then branch.
 
 ## Convention
 - `[ ]` = Not started
@@ -58,11 +59,12 @@ Phase 3 is decomposed into 4 subsystems, each with its own spec → plan → imp
 1. WS Gateway & Presence Infrastructure — merged
 2. Chat Rooms & Messages — merged
 3. Private Rooms, DMs & Private Communities — merged
-4. Chat UI & Polish — not yet planned
+4. Chat UI & Polish — scaffold merged, features & polish remaining
 
 | # | Status | Branch | Ships |
 |---|---|---|---|
 | 21 | `[x]` | `feat/ws-gateway-presence` | WS gateway, Redis, connection manager, presence system |
 | 22 | `[x]` | `feat/chat-rooms-messages` | Chat rooms, messages, rich content, history |
 | 23 | `[x]` | `feat/private-rooms-dms` | Private rooms, DMs, invites, private communities |
-| 24 | `[ ]` | TBD | Chat UI, room list, composer, presence indicators, search |
+| 24 | `[x]` | `feat/chat-ui-polish` | Chat page scaffold, room list, message feed, composer, WS real-time |
+| 25 | `[ ]` | TBD | Room header, create room, DM UI, message actions, mobile nav, polish |

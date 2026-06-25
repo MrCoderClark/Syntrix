@@ -13,12 +13,13 @@ design artifacts are archived under `docs/superpowers/mockups/` as HTML +
 retina PNG. Implementation plans (1–23) live in `.agent/plans/`.
 
 Phase 3 is decomposed into 4 subsystems, each with its own spec → plan →
-implementation cycle. Subsystems 1–3 are merged. Subsystem 4 (Chat UI &
-Polish) is next.
+implementation cycle. Subsystems 1–4 are merged. Section 24 shipped the chat
+scaffold (room list, message feed, composer, WS real-time). Section 25 adds
+the remaining chat features and polish.
 
-**Completed sections:** 01–23 (scaffold through Private Rooms, DMs & Communities).
-**Current section:** 24 — Chat UI & Polish (not yet planned).
-**Next section:** None — Section 24 is the final Phase 3 subsystem.
+**Completed sections:** 01–24 (scaffold through Chat UI scaffold).
+**Current section:** 25 — Chat Features & Polish (not yet planned).
+**Next section:** None — Section 25 is the final Phase 3 section.
 
 See `PROGRESS.md` for the full section checklist and current status.
 
