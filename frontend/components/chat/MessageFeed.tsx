@@ -152,18 +152,20 @@ export function MessageFeed({ roomId, typingUsers = [] }: MessageFeedProps) {
                 <span className={styles.timestamp}>
                   {timeAgo(msg.created_at)}
                 </span>
-                {msg.edited_at && (
-                  <span className={styles.edited}>(edited)</span>
-                )}
               </div>
             )}
             {msg.deleted_at ? (
               <div className={styles.deletedText}>This message was deleted</div>
             ) : (
-              <div
-                className={styles.body}
-                dangerouslySetInnerHTML={{ __html: msg.body_html }}
-              />
+              <>
+                <div
+                  className={styles.body}
+                  dangerouslySetInnerHTML={{ __html: msg.body_html }}
+                />
+                {msg.edited_at && (
+                  <span className={styles.edited}>(edited)</span>
+                )}
+              </>
             )}
           </div>
         );

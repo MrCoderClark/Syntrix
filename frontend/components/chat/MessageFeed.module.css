@@ -73,6 +73,7 @@
   font-size: 11px;
   color: var(--ink-faint);
   font-style: italic;
+  padding-left: 36px;
 }
 
 .body {
