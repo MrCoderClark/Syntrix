@@ -1,0 +1,75 @@
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--rule-soft);
+  background: var(--surface);
+}
+
+.editorWrap {
+  flex: 1;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  background: var(--paper);
+  transition: border-color var(--duration-fast) ease;
+  min-height: 40px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.editorWrap:focus-within {
+  border-color: var(--accent);
+}
+
+.content .tiptap {
+  outline: none;
+  font-family: var(--font-body-family);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.content .tiptap p {
+  margin: 0;
+}
+
+.content .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--ink-faint);
+  pointer-events: none;
+  height: 0;
+}
+
+.content .tiptap code {
+  font-family: var(--font-mono-family);
+  font-size: 13px;
+  background: var(--paper-warm);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.sendBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--accent);
+  color: var(--paper);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.sendBtn:hover {
+  opacity: 0.85;
+}
+
+.sendBtn:active {
+  opacity: 0.7;
+}
