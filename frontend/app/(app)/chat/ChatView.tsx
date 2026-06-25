@@ -419,6 +419,7 @@ export function ChatView() {
                       className={styles.mobileMenuBtn}
                       onClick={() => setMobileRoomListOpen((o) => !o)}
                       aria-label="Toggle room list"
+                      aria-expanded={mobileRoomListOpen}
                     >
                       {mobileRoomListOpen ? <XIcon /> : <MenuIcon />}
                     </button>
