@@ -79,6 +79,14 @@
   }
 }
 
+.mobileMenuBtn {
+  display: none;
+}
+
+.mobileOverlay {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .chatView {
     grid-template-columns: 1fr;
@@ -87,5 +95,43 @@
 
   .roomListPanel {
     display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 50;
+    background: var(--surface);
+    border-right: 1px solid var(--rule-soft);
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .roomListOpen {
+    display: flex;
+  }
+
+  .mobileMenuBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .mobileOverlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 40;
+  }
+
+  .statusBar {
+    padding: 8px 12px;
   }
 }

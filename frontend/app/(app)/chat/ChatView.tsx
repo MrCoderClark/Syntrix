@@ -7,6 +7,7 @@ import { CreateRoomModal } from "@/components/chat/CreateRoomModal";
 import { MessageFeed } from "@/components/chat/MessageFeed";
 import { Composer } from "@/components/chat/Composer";
 import { RoomHeader } from "@/components/chat/RoomHeader";
+import { MenuIcon, XIcon } from "@/components/icons";
 import type { CommunityGroup, DM } from "@/components/chat/RoomList";
 import type { Message } from "@/components/chat/MessageFeed";
 import styles from "./ChatView.module.css";
@@ -37,6 +38,7 @@ export function ChatView() {
     communityId: string;
     communityName: string;
   } | null>(null);
+  const [mobileRoomListOpen, setMobileRoomListOpen] = useState(false);
 
   // Current user
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -264,6 +266,7 @@ export function ChatView() {
 
   const handleSelectRoom = useCallback((roomId: string) => {
     setActiveRoomId(roomId);
+    setMobileRoomListOpen(false);
   }, []);
 
   const handleCreateRoom = useCallback(
@@ -373,7 +376,9 @@ export function ChatView() {
   return (
     <>
       <div className={styles.chatView}>
-        <div className={styles.roomListPanel}>
+        <div
+          className={`${styles.roomListPanel} ${mobileRoomListOpen ? styles.roomListOpen : ""}`}
+        >
           <RoomList
             communities={communities}
             dms={dms}
@@ -383,6 +388,12 @@ export function ChatView() {
             onNewDm={handleNewDm}
           />
         </div>
+        {mobileRoomListOpen && (
+          <div
+            className={styles.mobileOverlay}
+            onClick={() => setMobileRoomListOpen(false)}
+          />
+        )}
         <div className={styles.messagePanel}>
           {activeRoomId ? (
             <>
@@ -403,6 +414,15 @@ export function ChatView() {
                   isPrivate={activeRoom.isPrivate}
                   isDm={activeRoom.isDm}
                   memberCount={memberCount}
+                  mobileToggle={
+                    <button
+                      className={styles.mobileMenuBtn}
+                      onClick={() => setMobileRoomListOpen((o) => !o)}
+                      aria-label="Toggle room list"
+                    >
+                      {mobileRoomListOpen ? <XIcon /> : <MenuIcon />}
+                    </button>
+                  }
                 />
               )}
               <MessageFeed

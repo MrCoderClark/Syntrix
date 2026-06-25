@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { UsersIcon } from "@/components/icons";
 import styles from "./RoomHeader.module.css";
 
@@ -8,6 +9,7 @@ interface RoomHeaderProps {
   isPrivate: boolean;
   isDm: boolean;
   memberCount: number;
+  mobileToggle?: React.ReactNode;
 }
 
 export function RoomHeader({
@@ -15,10 +17,12 @@ export function RoomHeader({
   isPrivate,
   isDm,
   memberCount,
+  mobileToggle,
 }: RoomHeaderProps) {
   return (
     <div className={styles.header}>
       <div className={styles.info}>
+        {mobileToggle}
         {!isDm && <span className={styles.hash}>{isPrivate ? "🔒" : "#"}</span>}
         <span className={styles.name}>{roomName}</span>
       </div>
