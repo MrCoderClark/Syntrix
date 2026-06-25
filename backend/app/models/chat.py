@@ -18,15 +18,17 @@ class ChatRoom(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    community_id: Mapped[uuid.UUID] = mapped_column(
+    community_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("communities.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,  # NULL for DMs
     )
     name: Mapped[str] = mapped_column(Text, nullable=False)
     slug: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     is_default: Mapped[bool] = mapped_column(Boolean, server_default=text("false"), nullable=False)
+    is_private: Mapped[bool] = mapped_column(Boolean, server_default=text("false"), nullable=False)
+    is_dm: Mapped[bool] = mapped_column(Boolean, server_default=text("false"), nullable=False)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),

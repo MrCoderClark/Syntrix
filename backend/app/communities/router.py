@@ -28,6 +28,7 @@ def _to_response(c: Community, member_count: int = 0) -> CommunityResponse:
         color=c.color,
         owner_id=str(c.owner_id),
         member_count=member_count,
+        is_private=c.is_private,
         created_at=c.created_at,
     )
 
@@ -40,6 +41,7 @@ async def list_communities(session: AsyncSession = Depends(get_session)):
             CommunityMembership,
             Community.id == CommunityMembership.community_id,
         )
+        .where(Community.is_private.is_(False))
         .group_by(Community.id)
         .order_by(Community.name)
     )
@@ -80,13 +82,6 @@ async def get_community(
     if not community:
         raise HTTPException(status_code=404, detail="Community not found")
 
-    count_result = await session.execute(
-        select(func.count())
-        .select_from(CommunityMembership)
-        .where(CommunityMembership.community_id == community.id)
-    )
-    count = count_result.scalar_one()
-
     membership = None
     if user:
         m_result = await session.execute(
@@ -96,6 +91,17 @@ async def get_community(
             )
         )
         membership = m_result.scalar_one_or_none()
+
+    # Private communities return 404 to non-members (and banned members)
+    if community.is_private and (not membership or membership.banned_at):
+        raise HTTPException(status_code=404, detail="Community not found")
+
+    count_result = await session.execute(
+        select(func.count())
+        .select_from(CommunityMembership)
+        .where(CommunityMembership.community_id == community.id)
+    )
+    count = count_result.scalar_one()
 
     resp = _to_response(community, count)
     return {
@@ -122,6 +128,7 @@ async def create_community(
         slug=body.slug,
         description=body.description,
         color=body.color,
+        is_private=body.is_private,
         owner_id=user.id,
     )
     session.add(community)
@@ -151,6 +158,10 @@ async def join_community(
     community = result.scalar_one_or_none()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found")
+    if community.is_private:
+        raise HTTPException(
+            status_code=403, detail="This is a private community — join by invite only"
+        )
     existing = await session.execute(
         select(CommunityMembership).where(
             CommunityMembership.community_id == community.id,
@@ -223,12 +234,27 @@ async def update_community(
 @router.get("/{slug}/members", response_model=list[MemberResponse])
 async def list_members(
     slug: str,
+    user: OptionalUser,
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(Community).where(Community.slug == slug))
     community = result.scalar_one_or_none()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found")
+
+    if community.is_private:
+        membership = None
+        if user:
+            m_result = await session.execute(
+                select(CommunityMembership).where(
+                    CommunityMembership.community_id == community.id,
+                    CommunityMembership.user_id == user.id,
+                )
+            )
+            membership = m_result.scalar_one_or_none()
+        if not membership or membership.banned_at:
+            raise HTTPException(status_code=404, detail="Community not found")
+
     stmt = (
         select(CommunityMembership, User)
         .join(User, CommunityMembership.user_id == User.id)

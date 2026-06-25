@@ -11,6 +11,7 @@ from app.comments.router import router as comments_router
 from app.communities.router import router as communities_router
 from app.config import get_settings
 from app.feeds.router import router as feeds_router
+from app.invites.router import router as invites_router
 from app.posts.og import router as og_router
 from app.posts.router import router as posts_router
 from app.profiles.router import router as profiles_router
@@ -43,6 +44,7 @@ app.include_router(chat_router)
 app.include_router(comments_router)
 app.include_router(communities_router)
 app.include_router(feeds_router)
+app.include_router(invites_router)
 app.include_router(og_router)
 app.include_router(posts_router)
 app.include_router(profiles_router)

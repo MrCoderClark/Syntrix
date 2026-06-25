@@ -16,6 +16,7 @@ class CommunityResponse(BaseModel):
     color: str
     owner_id: str
     member_count: int = 0
+    is_private: bool = False
     created_at: datetime
 
 
@@ -24,6 +25,7 @@ class CommunityCreateRequest(BaseModel):
     slug: str = Field(min_length=3, max_length=40)
     description: str | None = Field(default=None, max_length=1000)
     color: str = Field(default="#1e3a5f", pattern=r"^#[0-9a-fA-F]{6}$")
+    is_private: bool = False
 
     @field_validator("slug")
     @classmethod
