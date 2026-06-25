@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWebSocket } from "@/lib/ws";
 import { RoomList } from "@/components/chat/RoomList";
+import { CreateRoomModal } from "@/components/chat/CreateRoomModal";
 import { MessageFeed } from "@/components/chat/MessageFeed";
 import { Composer } from "@/components/chat/Composer";
 import { RoomHeader } from "@/components/chat/RoomHeader";
@@ -32,6 +33,10 @@ export function ChatView() {
   const [dms, setDms] = useState<DM[]>([]);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [sidebarLoading, setSidebarLoading] = useState(true);
+  const [createRoomFor, setCreateRoomFor] = useState<{
+    communityId: string;
+    communityName: string;
+  } | null>(null);
 
   // Current user
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -261,6 +266,60 @@ export function ChatView() {
     setActiveRoomId(roomId);
   }, []);
 
+  const handleCreateRoom = useCallback(
+    (communityId: string) => {
+      const community = communities.find((c) => c.id === communityId);
+      if (community)
+        setCreateRoomFor({ communityId, communityName: community.name });
+    },
+    [communities],
+  );
+
+  const handleRoomCreated = useCallback(
+    (room: {
+      id: string;
+      name: string;
+      slug: string;
+      is_private: boolean;
+      is_default: boolean;
+      is_dm: boolean;
+      community_id: string | null;
+    }) => {
+      setCommunities((prev) =>
+        prev.map((c) =>
+          c.id === room.community_id ? { ...c, rooms: [...c.rooms, room] } : c,
+        ),
+      );
+      setActiveRoomId(room.id);
+      setCreateRoomFor(null);
+    },
+    [],
+  );
+
+  const handleNewDm = useCallback(() => {
+    const handle = window.prompt("Enter username to message:");
+    if (!handle) return;
+    fetch(`/api/users/${handle}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((user) => {
+        if (!user) {
+          alert("User not found");
+          return;
+        }
+        return fetch(`/api/dms/${user.id}`, { method: "POST" });
+      })
+      .then((r) => (r && r.ok ? r.json() : null))
+      .then((room) => {
+        if (!room) return;
+        setActiveRoomId(room.id);
+        // Refresh DM list
+        fetch("/api/dms")
+          .then((r) => (r.ok ? r.json() : []))
+          .then(setDms);
+      })
+      .catch(() => alert("Failed to create DM"));
+  }, []);
+
   const handleTyping = useCallback(() => {
     if (activeRoomId) {
       send({ type: "typing.start", payload: { room_id: activeRoomId } });
@@ -272,52 +331,64 @@ export function ChatView() {
   }
 
   return (
-    <div className={styles.chatView}>
-      <div className={styles.roomListPanel}>
-        <RoomList
-          communities={communities}
-          dms={dms}
-          activeRoomId={activeRoomId}
-          onSelectRoom={handleSelectRoom}
+    <>
+      <div className={styles.chatView}>
+        <div className={styles.roomListPanel}>
+          <RoomList
+            communities={communities}
+            dms={dms}
+            activeRoomId={activeRoomId}
+            onSelectRoom={handleSelectRoom}
+            onCreateRoom={handleCreateRoom}
+            onNewDm={handleNewDm}
+          />
+        </div>
+        <div className={styles.messagePanel}>
+          {activeRoomId ? (
+            <>
+              <div className={styles.statusBar}>
+                <span
+                  className={`${styles.statusDot} ${styles[wsStatus]}`}
+                  aria-hidden="true"
+                />
+                {wsStatus === "connected"
+                  ? "Connected"
+                  : wsStatus === "connecting"
+                    ? "Connecting..."
+                    : "Disconnected"}
+              </div>
+              {activeRoom && (
+                <RoomHeader
+                  roomName={activeRoom.name}
+                  isPrivate={activeRoom.isPrivate}
+                  isDm={activeRoom.isDm}
+                  memberCount={memberCount}
+                />
+              )}
+              <MessageFeed
+                roomId={activeRoomId}
+                messages={messages}
+                loading={msgLoading}
+                hasMore={hasMore}
+                loadingMore={loadingMore}
+                onLoadMore={handleLoadMore}
+                typingUsers={typingUsers}
+              />
+              <Composer roomId={activeRoomId} onTyping={handleTyping} />
+            </>
+          ) : (
+            <div className={styles.placeholder}>No rooms available</div>
+          )}
+        </div>
+      </div>
+      {createRoomFor && (
+        <CreateRoomModal
+          communityId={createRoomFor.communityId}
+          communityName={createRoomFor.communityName}
+          onCreated={handleRoomCreated}
+          onClose={() => setCreateRoomFor(null)}
         />
-      </div>
-      <div className={styles.messagePanel}>
-        {activeRoomId ? (
-          <>
-            <div className={styles.statusBar}>
-              <span
-                className={`${styles.statusDot} ${styles[wsStatus]}`}
-                aria-hidden="true"
-              />
-              {wsStatus === "connected"
-                ? "Connected"
-                : wsStatus === "connecting"
-                  ? "Connecting..."
-                  : "Disconnected"}
-            </div>
-            {activeRoom && (
-              <RoomHeader
-                roomName={activeRoom.name}
-                isPrivate={activeRoom.isPrivate}
-                isDm={activeRoom.isDm}
-                memberCount={memberCount}
-              />
-            )}
-            <MessageFeed
-              roomId={activeRoomId}
-              messages={messages}
-              loading={msgLoading}
-              hasMore={hasMore}
-              loadingMore={loadingMore}
-              onLoadMore={handleLoadMore}
-              typingUsers={typingUsers}
-            />
-            <Composer roomId={activeRoomId} onTyping={handleTyping} />
-          </>
-        ) : (
-          <div className={styles.placeholder}>No rooms available</div>
-        )}
-      </div>
-    </div>
+      )}
+    </>
   );
 }

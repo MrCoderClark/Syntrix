@@ -35,6 +35,8 @@ interface RoomListProps {
   dms: DM[];
   activeRoomId: string | null;
   onSelectRoom: (roomId: string) => void;
+  onCreateRoom?: (communityId: string) => void;
+  onNewDm?: () => void;
 }
 
 export type { Room, DM, CommunityGroup };
@@ -44,12 +46,26 @@ export function RoomList({
   dms,
   activeRoomId,
   onSelectRoom,
+  onCreateRoom,
+  onNewDm,
 }: RoomListProps) {
   return (
     <div className={styles.list}>
       {dms.length > 0 && (
         <>
-          <div className={styles.sectionLabel}>Direct Messages</div>
+          <div className={styles.sectionLabel}>
+            Direct Messages
+            {onNewDm && (
+              <button
+                className={styles.addBtn}
+                onClick={onNewDm}
+                aria-label="New direct message"
+                title="New DM"
+              >
+                +
+              </button>
+            )}
+          </div>
           {dms.map((dm) => (
             <button
               key={dm.room_id}
@@ -84,6 +100,19 @@ export function RoomList({
               style={{ background: c.color }}
             />
             {c.name}
+            {onCreateRoom && (
+              <button
+                className={styles.addBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCreateRoom(c.id);
+                }}
+                aria-label={`Create room in ${c.name}`}
+                title="New room"
+              >
+                +
+              </button>
+            )}
           </div>
           {c.rooms.map((room) => (
             <button
