@@ -47,6 +47,8 @@ export function ChatView() {
   // WebSocket
   const { status: wsStatus, send, lastMessage } = useWebSocket();
   const prevRoomRef = useRef<string | null>(null);
+  const activeRoomRef = useRef<string | null>(null);
+  activeRoomRef.current = activeRoomId;
 
   // Load sidebar data once on mount
   useEffect(() => {
@@ -108,6 +110,8 @@ export function ChatView() {
     setMessages([]);
     setHasMore(true);
     setTypingUsers([]);
+    for (const timer of typingTimers.current.values()) clearTimeout(timer);
+    typingTimers.current.clear();
 
     fetch(`/api/rooms/${activeRoomId}/messages?limit=50`)
       .then((r) => (r.ok ? r.json() : []))
@@ -198,9 +202,11 @@ export function ChatView() {
   const handleLoadMore = useCallback(async () => {
     if (!activeRoomId || loadingMore || !hasMore || messages.length === 0)
       return;
+    const roomAtCallTime = activeRoomId;
     setLoadingMore(true);
     const params = new URLSearchParams({ before: messages[0].id, limit: "50" });
-    const res = await fetch(`/api/rooms/${activeRoomId}/messages?${params}`);
+    const res = await fetch(`/api/rooms/${roomAtCallTime}/messages?${params}`);
+    if (roomAtCallTime !== activeRoomRef.current) return;
     const older: Message[] = res.ok ? await res.json() : [];
     if (older.length === 0) {
       setHasMore(false);
