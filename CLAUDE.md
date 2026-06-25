@@ -10,16 +10,15 @@ polish step.
 Phase 1 is **complete**. Phase 2 (Q&A Layer) is **complete**. Phase 3
 (Real-time Chat) is **in progress**. The full spec lives in `PRD.md`. All
 design artifacts are archived under `docs/superpowers/mockups/` as HTML +
-retina PNG. Implementation plans (1–22) live in `.agent/plans/`.
+retina PNG. Implementation plans (1–23) live in `.agent/plans/`.
 
 Phase 3 is decomposed into 4 subsystems, each with its own spec → plan →
-implementation cycle. Subsystem 1 (WS Gateway & Presence) is merged.
-Subsystem 2 (Chat Rooms & Messages) is implementation-complete on
-`feat/chat-rooms-messages`, pending merge.
+implementation cycle. Subsystems 1–3 are merged. Subsystem 4 (Chat UI &
+Polish) is next.
 
-**Completed sections:** 01–21 (scaffold through WS Gateway & Presence).
-**Current section:** 22 — Chat Rooms & Messages (pending merge).
-**Next section:** Phase 3, Subsystem 3 — Private Rooms, DMs & Private Communities.
+**Completed sections:** 01–23 (scaffold through Private Rooms, DMs & Communities).
+**Current section:** 24 — Chat UI & Polish (not yet planned).
+**Next section:** None — Section 24 is the final Phase 3 subsystem.
 
 See `PROGRESS.md` for the full section checklist and current status.
 
