@@ -320,6 +320,42 @@ export function ChatView() {
       .catch(() => alert("Failed to create DM"));
   }, []);
 
+  const handleEditMessage = useCallback(
+    async (messageId: string, bodyJson: object) => {
+      const res = await fetch(`/api/messages/${messageId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body_json: bodyJson }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setMessages((prev) =>
+          prev.map((m) => (m.id === updated.id ? updated : m)),
+        );
+      }
+    },
+    [],
+  );
+
+  const handleDeleteMessage = useCallback(async (messageId: string) => {
+    if (!confirm("Delete this message?")) return;
+    const res = await fetch(`/api/messages/${messageId}`, { method: "DELETE" });
+    if (res.ok) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? {
+                ...m,
+                deleted_at: new Date().toISOString(),
+                body_html: "",
+                body_json: null,
+              }
+            : m,
+        ),
+      );
+    }
+  }, []);
+
   const handleTyping = useCallback(() => {
     if (activeRoomId) {
       send({ type: "typing.start", payload: { room_id: activeRoomId } });
@@ -373,6 +409,9 @@ export function ChatView() {
                 loadingMore={loadingMore}
                 onLoadMore={handleLoadMore}
                 typingUsers={typingUsers}
+                currentUserId={currentUserId}
+                onEditMessage={handleEditMessage}
+                onDeleteMessage={handleDeleteMessage}
               />
               <Composer roomId={activeRoomId} onTyping={handleTyping} />
             </>

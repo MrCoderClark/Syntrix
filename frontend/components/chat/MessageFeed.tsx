@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { timeAgo } from "@/lib/text";
+import { MessageActions } from "./MessageActions";
 import styles from "./MessageFeed.module.css";
 
 export interface Message {
@@ -26,6 +27,42 @@ interface MessageFeedProps {
   loadingMore: boolean;
   onLoadMore: () => void;
   typingUsers?: string[];
+  currentUserId: string | null;
+  onEditMessage?: (messageId: string, bodyJson: object) => void;
+  onDeleteMessage?: (messageId: string) => void;
+}
+
+function EditInput({
+  initialText,
+  onSave,
+  onCancel,
+}: {
+  initialText: string;
+  onSave: (text: string) => void;
+  onCancel: () => void;
+}) {
+  const [text, setText] = useState(initialText);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  return (
+    <div className={styles.editWrap}>
+      <input
+        ref={inputRef}
+        className={styles.editInput}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && text.trim()) onSave(text.trim());
+          if (e.key === "Escape") onCancel();
+        }}
+      />
+      <span className={styles.editHint}>Enter to save · Escape to cancel</span>
+    </div>
+  );
 }
 
 export function MessageFeed({
@@ -36,9 +73,13 @@ export function MessageFeed({
   loadingMore,
   onLoadMore,
   typingUsers = [],
+  currentUserId,
+  onEditMessage,
+  onDeleteMessage,
 }: MessageFeedProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Scroll to bottom when new messages arrive if near bottom
   useEffect(() => {
@@ -90,11 +131,23 @@ export function MessageFeed({
             new Date(prev.created_at).getTime() >
             300_000;
 
+        const isOwn = currentUserId !== null && currentUserId === msg.author_id;
+        const canSeeActions = !msg.deleted_at && currentUserId !== null;
+
         return (
           <div
             key={msg.id}
             className={`${styles.message} ${msg.deleted_at ? styles.deleted : ""}`}
           >
+            {canSeeActions && (
+              <div className={styles.actionsSlot}>
+                <MessageActions
+                  isOwn={isOwn}
+                  onEdit={isOwn ? () => setEditingId(msg.id) : undefined}
+                  onDelete={() => onDeleteMessage?.(msg.id)}
+                />
+              </div>
+            )}
             {showAuthor && (
               <div className={styles.authorRow}>
                 <span className={styles.avatar}>
@@ -118,6 +171,23 @@ export function MessageFeed({
             )}
             {msg.deleted_at ? (
               <div className={styles.deletedText}>This message was deleted</div>
+            ) : editingId === msg.id ? (
+              <EditInput
+                initialText={msg.body_html.replace(/<[^>]+>/g, "")}
+                onSave={(text) => {
+                  onEditMessage?.(msg.id, {
+                    type: "doc",
+                    content: [
+                      {
+                        type: "paragraph",
+                        content: [{ type: "text", text }],
+                      },
+                    ],
+                  });
+                  setEditingId(null);
+                }}
+                onCancel={() => setEditingId(null)}
+              />
             ) : (
               <>
                 <div
