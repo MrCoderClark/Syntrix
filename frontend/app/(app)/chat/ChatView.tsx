@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { RoomList } from "@/components/chat/RoomList";
 import type { CommunityGroup, DM } from "@/components/chat/RoomList";
+import { MessageFeed } from "@/components/chat/MessageFeed";
 import styles from "./ChatView.module.css";
 
 interface CommunityBrief {
@@ -100,9 +101,7 @@ export function ChatView() {
       </div>
       <div className={styles.messagePanel}>
         {activeRoomId ? (
-          <div className={styles.placeholder}>
-            Select a room to start chatting
-          </div>
+          <MessageFeed roomId={activeRoomId} />
         ) : (
           <div className={styles.placeholder}>No rooms available</div>
         )}
