@@ -14,17 +14,15 @@ interface ComposerProps {
   onTyping?: () => void;
 }
 
-function getExtensions() {
-  return [
-    StarterKit.configure({
-      codeBlock: false,
-      heading: false,
-      horizontalRule: false,
-    }),
-    TiptapLink.configure({ openOnClick: false, autolink: true }),
-    Placeholder.configure({ placeholder: "Type a message..." }),
-  ];
-}
+const EXTENSIONS = [
+  StarterKit.configure({
+    codeBlock: false,
+    heading: false,
+    horizontalRule: false,
+  }),
+  TiptapLink.configure({ openOnClick: false, autolink: true }),
+  Placeholder.configure({ placeholder: "Type a message..." }),
+];
 
 function isEmptyDoc(json: JSONContent): boolean {
   if (!json.content || json.content.length === 0) return true;
@@ -36,9 +34,10 @@ function isEmptyDoc(json: JSONContent): boolean {
 
 export function Composer({ roomId, onMessageSent, onTyping }: ComposerProps) {
   const sendingRef = useRef(false);
+  const handleSendRef = useRef<() => void>(() => {});
 
   const editor = useEditor({
-    extensions: getExtensions(),
+    extensions: EXTENSIONS,
     content: { type: "doc", content: [] },
     onUpdate() {
       onTyping?.();
@@ -47,7 +46,7 @@ export function Composer({ roomId, onMessageSent, onTyping }: ComposerProps) {
       handleKeyDown(_view, event) {
         if (event.key === "Enter" && !event.shiftKey) {
           event.preventDefault();
-          handleSend();
+          handleSendRef.current();
           return true;
         }
         return false;
@@ -76,6 +75,8 @@ export function Composer({ roomId, onMessageSent, onTyping }: ComposerProps) {
     }
   }, [editor, roomId, onMessageSent]);
 
+  handleSendRef.current = handleSend;
+
   if (!editor) return null;
 
   return (
@@ -87,6 +88,7 @@ export function Composer({ roomId, onMessageSent, onTyping }: ComposerProps) {
         type="button"
         className={styles.sendBtn}
         onClick={handleSend}
+        aria-label="Send message"
         title="Send (Enter)"
       >
         <svg
@@ -98,6 +100,7 @@ export function Composer({ roomId, onMessageSent, onTyping }: ComposerProps) {
           strokeLinejoin="round"
           width="18"
           height="18"
+          aria-hidden="true"
         >
           <line x1="22" y1="2" x2="11" y2="13" />
           <polygon points="22 2 15 22 11 13 2 9 22 2" />
