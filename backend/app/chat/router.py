@@ -200,6 +200,8 @@ async def delete_room(
     room = await session.get(ChatRoom, room_id)
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
+    if room.is_dm:
+        raise HTTPException(status_code=400, detail="Cannot delete DM rooms")
     if room.is_default:
         raise HTTPException(status_code=400, detail="Cannot delete the default room")
     membership = await _require_membership(session, room.community_id, user.id)
@@ -421,6 +423,8 @@ async def add_room_member(
         raise HTTPException(status_code=404, detail="Room not found")
     if not room.is_private and not room.is_dm:
         raise HTTPException(status_code=400, detail="Can only add members to private rooms")
+    if room.is_dm:
+        raise HTTPException(status_code=400, detail="Cannot add members to DM rooms")
 
     # Must be a room member or community mod/owner/admin to add members
     is_privileged = user.role == "admin"

@@ -234,12 +234,27 @@ async def update_community(
 @router.get("/{slug}/members", response_model=list[MemberResponse])
 async def list_members(
     slug: str,
+    user: OptionalUser,
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(Community).where(Community.slug == slug))
     community = result.scalar_one_or_none()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found")
+
+    if community.is_private:
+        membership = None
+        if user:
+            m_result = await session.execute(
+                select(CommunityMembership).where(
+                    CommunityMembership.community_id == community.id,
+                    CommunityMembership.user_id == user.id,
+                )
+            )
+            membership = m_result.scalar_one_or_none()
+        if not membership or membership.banned_at:
+            raise HTTPException(status_code=404, detail="Community not found")
+
     stmt = (
         select(CommunityMembership, User)
         .join(User, CommunityMembership.user_id == User.id)
