@@ -91,19 +91,32 @@ export function CreateRoomModal({
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className={styles.modal}>
-        <h3 className={styles.title}>New room in {communityName}</h3>
+      <div
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-room-title"
+      >
+        <h3 className={styles.title} id="create-room-title">
+          New room in {communityName}
+        </h3>
 
-        <label className={styles.label}>Name</label>
+        <label className={styles.label} htmlFor="room-name">
+          Name
+        </label>
         <Input
+          id="room-name"
           value={name}
           onChange={(e) => handleNameChange(e.target.value)}
           placeholder="general-chat"
           autoFocus
         />
 
-        <label className={styles.label}>Slug</label>
+        <label className={styles.label} htmlFor="room-slug">
+          Slug
+        </label>
         <Input
+          id="room-slug"
           value={slug}
           onChange={(e) => {
             setSlug(e.target.value);

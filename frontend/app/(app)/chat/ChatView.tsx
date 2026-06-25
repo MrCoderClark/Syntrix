@@ -427,6 +427,7 @@ export function ChatView() {
                 />
               )}
               <MessageFeed
+                key={activeRoomId}
                 roomId={activeRoomId}
                 messages={messages}
                 loading={msgLoading}
