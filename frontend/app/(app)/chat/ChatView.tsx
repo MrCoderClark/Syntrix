@@ -64,18 +64,19 @@ export function ChatView() {
         const comms: CommunityBrief[] = commRes.ok ? await commRes.json() : [];
         const dmList: DM[] = dmRes.ok ? await dmRes.json() : [];
 
-        const groups: CommunityGroup[] = [];
-        for (const c of comms) {
-          const roomRes = await fetch(`/api/communities/${c.id}/rooms`);
-          const rooms: RoomBrief[] = roomRes.ok ? await roomRes.json() : [];
-          groups.push({
-            id: c.id,
-            name: c.name,
-            slug: c.slug,
-            color: c.color,
-            rooms,
-          });
-        }
+        const groups: CommunityGroup[] = await Promise.all(
+          comms.map(async (c) => {
+            const roomRes = await fetch(`/api/communities/${c.id}/rooms`);
+            const rooms: RoomBrief[] = roomRes.ok ? await roomRes.json() : [];
+            return {
+              id: c.id,
+              name: c.name,
+              slug: c.slug,
+              color: c.color,
+              rooms,
+            };
+          }),
+        );
 
         if (cancelled) return;
         setCommunities(groups);
@@ -109,6 +110,7 @@ export function ChatView() {
     setMsgLoading(true);
     setMessages([]);
     setHasMore(true);
+    setLoadingMore(false);
     setTypingUsers([]);
     for (const timer of typingTimers.current.values()) clearTimeout(timer);
     typingTimers.current.clear();
