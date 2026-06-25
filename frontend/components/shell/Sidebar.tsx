@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Wordmark } from "@/components/Wordmark";
-import { HomeIcon, SearchIcon, UserIcon } from "@/components/icons";
+import { ChatIcon, HomeIcon, SearchIcon, UserIcon } from "@/components/icons";
 import styles from "./Sidebar.module.css";
 
 interface CommunityItem {
@@ -18,6 +18,7 @@ interface CommunityItem {
 const NAV_ITEMS = [
   { icon: <HomeIcon />, label: "Feed", href: "/" },
   { icon: <SearchIcon />, label: "Explore", href: "/communities" },
+  { icon: <ChatIcon />, label: "Chat", href: "/chat" },
   { icon: <UserIcon />, label: "My profile", href: "/settings/profile" },
 ];
 
