@@ -64,14 +64,11 @@ export function RoomList({
                   {dm.other_user_display_name}
                 </span>
                 {dm.last_message_body_html && (
-                  <span
-                    className={styles.lastMsg}
-                    dangerouslySetInnerHTML={{
-                      __html: dm.last_message_body_html
-                        .replace(/<[^>]+>/g, "")
-                        .slice(0, 40),
-                    }}
-                  />
+                  <span className={styles.lastMsg}>
+                    {dm.last_message_body_html
+                      .replace(/<[^>]+>/g, "")
+                      .slice(0, 40)}
+                  </span>
                 )}
               </div>
             </button>
