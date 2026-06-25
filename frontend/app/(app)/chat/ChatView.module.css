@@ -38,6 +38,47 @@
   font-size: 14px;
 }
 
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-size: 12px;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.connected {
+  background: var(--good);
+}
+
+.disconnected {
+  background: var(--bad);
+}
+
+.connecting {
+  background: var(--ink-faint);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
 @media (max-width: 768px) {
   .chatView {
     grid-template-columns: 1fr;

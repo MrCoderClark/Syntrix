@@ -35,12 +35,17 @@ function isEmptyDoc(json: JSONContent): boolean {
 export function Composer({ roomId, onMessageSent, onTyping }: ComposerProps) {
   const sendingRef = useRef(false);
   const handleSendRef = useRef<() => void>(() => {});
+  const lastTypingRef = useRef(0);
 
   const editor = useEditor({
     extensions: EXTENSIONS,
     content: { type: "doc", content: [] },
     onUpdate() {
-      onTyping?.();
+      const now = Date.now();
+      if (now - lastTypingRef.current > 2000) {
+        lastTypingRef.current = now;
+        onTyping?.();
+      }
     },
     editorProps: {
       handleKeyDown(_view, event) {

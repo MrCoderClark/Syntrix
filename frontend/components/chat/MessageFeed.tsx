@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { timeAgo } from "@/lib/text";
 import styles from "./MessageFeed.module.css";
 
@@ -20,51 +20,25 @@ export interface Message {
 
 interface MessageFeedProps {
   roomId: string;
+  messages: Message[];
+  loading: boolean;
+  hasMore: boolean;
+  loadingMore: boolean;
+  onLoadMore: () => void;
   typingUsers?: string[];
 }
 
-export function MessageFeed({ roomId, typingUsers = [] }: MessageFeedProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+export function MessageFeed({
+  roomId: _roomId,
+  messages,
+  loading,
+  hasMore,
+  loadingMore,
+  onLoadMore,
+  typingUsers = [],
+}: MessageFeedProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const loadMessages = useCallback(
-    async (before?: string) => {
-      const params = new URLSearchParams();
-      if (before) params.set("before", before);
-      params.set("limit", "50");
-
-      const res = await fetch(`/api/rooms/${roomId}/messages?${params}`);
-      if (!res.ok) return [];
-      return (await res.json()) as Message[];
-    },
-    [roomId],
-  );
-
-  // Load initial messages on room change
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setMessages([]);
-    setHasMore(true);
-
-    loadMessages().then((msgs) => {
-      if (cancelled) return;
-      setMessages(msgs.reverse());
-      setHasMore(msgs.length >= 50);
-      setLoading(false);
-      requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView();
-      });
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [roomId, loadMessages]);
 
   // Scroll to bottom when new messages arrive if near bottom
   useEffect(() => {
@@ -82,25 +56,13 @@ export function MessageFeed({ roomId, typingUsers = [] }: MessageFeedProps) {
     }
   }, [messages.length, loading]);
 
-  const handleScroll = useCallback(async () => {
+  const handleScroll = useCallback(() => {
     const container = containerRef.current;
     if (!container || loadingMore || !hasMore) return;
     if (container.scrollTop < 200 && messages.length > 0) {
-      setLoadingMore(true);
-      const oldHeight = container.scrollHeight;
-      const older = await loadMessages(messages[0].id);
-      if (older.length === 0) {
-        setHasMore(false);
-      } else {
-        setMessages((prev) => [...older.reverse(), ...prev]);
-        setHasMore(older.length >= 50);
-        requestAnimationFrame(() => {
-          container.scrollTop = container.scrollHeight - oldHeight;
-        });
-      }
-      setLoadingMore(false);
+      onLoadMore();
     }
-  }, [loadingMore, hasMore, messages, loadMessages]);
+  }, [loadingMore, hasMore, messages.length, onLoadMore]);
 
   if (loading) {
     return <div className={styles.loading}>Loading messages...</div>;
