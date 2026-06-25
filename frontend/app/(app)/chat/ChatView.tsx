@@ -327,12 +327,14 @@ export function ChatView() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ body_json: bodyJson }),
       });
-      if (res.ok) {
-        const updated = await res.json();
-        setMessages((prev) =>
-          prev.map((m) => (m.id === updated.id ? updated : m)),
-        );
+      if (!res.ok) {
+        alert("Failed to edit message");
+        return;
       }
+      const updated = await res.json();
+      setMessages((prev) =>
+        prev.map((m) => (m.id === updated.id ? updated : m)),
+      );
     },
     [],
   );
@@ -340,20 +342,22 @@ export function ChatView() {
   const handleDeleteMessage = useCallback(async (messageId: string) => {
     if (!confirm("Delete this message?")) return;
     const res = await fetch(`/api/messages/${messageId}`, { method: "DELETE" });
-    if (res.ok) {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === messageId
-            ? {
-                ...m,
-                deleted_at: new Date().toISOString(),
-                body_html: "",
-                body_json: null,
-              }
-            : m,
-        ),
-      );
+    if (!res.ok) {
+      alert("Failed to delete message");
+      return;
     }
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === messageId
+          ? {
+              ...m,
+              deleted_at: new Date().toISOString(),
+              body_html: "",
+              body_json: null,
+            }
+          : m,
+      ),
+    );
   }, []);
 
   const handleTyping = useCallback(() => {
