@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWebSocket } from "@/lib/ws";
 import { RoomList } from "@/components/chat/RoomList";
 import { MessageFeed } from "@/components/chat/MessageFeed";
 import { Composer } from "@/components/chat/Composer";
+import { RoomHeader } from "@/components/chat/RoomHeader";
 import type { CommunityGroup, DM } from "@/components/chat/RoomList";
 import type { Message } from "@/components/chat/MessageFeed";
 import styles from "./ChatView.module.css";
@@ -31,6 +32,43 @@ export function ChatView() {
   const [dms, setDms] = useState<DM[]>([]);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [sidebarLoading, setSidebarLoading] = useState(true);
+
+  // Current user
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setCurrentUserId(data.id);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Derive active room metadata
+  const activeRoom = useMemo(() => {
+    if (!activeRoomId) return null;
+    for (const c of communities) {
+      const room = c.rooms.find((r) => r.id === activeRoomId);
+      if (room)
+        return { name: room.name, isPrivate: room.is_private, isDm: false };
+    }
+    const dm = dms.find((d) => d.room_id === activeRoomId);
+    if (dm)
+      return { name: dm.other_user_display_name, isPrivate: false, isDm: true };
+    return null;
+  }, [activeRoomId, communities, dms]);
+
+  // Member count for active room
+  const [memberCount, setMemberCount] = useState(0);
+
+  useEffect(() => {
+    if (!activeRoomId) return;
+    fetch(`/api/rooms/${activeRoomId}/members`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((members: unknown[]) => setMemberCount(members.length))
+      .catch(() => {});
+  }, [activeRoomId]);
 
   // Message state (owned here, passed down to MessageFeed)
   const [messages, setMessages] = useState<Message[]>([]);
@@ -257,6 +295,14 @@ export function ChatView() {
                   ? "Connecting..."
                   : "Disconnected"}
             </div>
+            {activeRoom && (
+              <RoomHeader
+                roomName={activeRoom.name}
+                isPrivate={activeRoom.isPrivate}
+                isDm={activeRoom.isDm}
+                memberCount={memberCount}
+              />
+            )}
             <MessageFeed
               roomId={activeRoomId}
               messages={messages}
