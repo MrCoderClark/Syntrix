@@ -51,21 +51,21 @@ export function RoomList({
 }: RoomListProps) {
   return (
     <div className={styles.list}>
+      <div className={styles.sectionLabel}>
+        Direct Messages
+        {onNewDm && (
+          <button
+            className={styles.addBtn}
+            onClick={onNewDm}
+            aria-label="New direct message"
+            title="New DM"
+          >
+            +
+          </button>
+        )}
+      </div>
       {dms.length > 0 && (
         <>
-          <div className={styles.sectionLabel}>
-            Direct Messages
-            {onNewDm && (
-              <button
-                className={styles.addBtn}
-                onClick={onNewDm}
-                aria-label="New direct message"
-                title="New DM"
-              >
-                +
-              </button>
-            )}
-          </div>
           {dms.map((dm) => (
             <button
               key={dm.room_id}
