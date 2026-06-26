@@ -12,7 +12,7 @@ import styles from "./Composer.module.css";
 interface ComposerProps {
   roomId: string;
   placeholder?: string;
-  onMessageSent?: () => void;
+  onMessageSent?: (message: Record<string, unknown>) => void;
   onTyping?: () => void;
 }
 
@@ -83,8 +83,9 @@ export function Composer({
         body: JSON.stringify({ body_json: json }),
       });
       if (res.ok) {
+        const created = await res.json();
         editor.commands.clearContent();
-        onMessageSent?.();
+        onMessageSent?.(created);
       }
     } finally {
       sendingRef.current = false;
