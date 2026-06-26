@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWebSocket } from "@/lib/ws";
 import { RoomList } from "@/components/chat/RoomList";
 import { CreateRoomModal } from "@/components/chat/CreateRoomModal";
+import { NewDmModal } from "@/components/chat/NewDmModal";
 import { MessageFeed } from "@/components/chat/MessageFeed";
 import { Composer } from "@/components/chat/Composer";
 import { RoomHeader } from "@/components/chat/RoomHeader";
@@ -39,6 +40,7 @@ export function ChatView() {
     communityName: string;
   } | null>(null);
   const [mobileRoomListOpen, setMobileRoomListOpen] = useState(false);
+  const [showNewDm, setShowNewDm] = useState(false);
 
   // Current user
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -305,28 +307,14 @@ export function ChatView() {
     [],
   );
 
-  const handleNewDm = useCallback(() => {
-    const handle = window.prompt("Enter username to message:");
-    if (!handle) return;
-    fetch(`/api/users/${handle}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((user) => {
-        if (!user) {
-          alert("User not found");
-          return;
-        }
-        return fetch(`/api/dms/${user.id}`, { method: "POST" });
-      })
-      .then((r) => (r && r.ok ? r.json() : null))
-      .then((room) => {
-        if (!room) return;
-        setActiveRoomId(room.id);
-        // Refresh DM list
-        fetch("/api/dms")
-          .then((r) => (r.ok ? r.json() : []))
-          .then(setDms);
-      })
-      .catch(() => alert("Failed to create DM"));
+  const handleNewDm = useCallback(() => setShowNewDm(true), []);
+
+  const handleDmCreated = useCallback((roomId: string) => {
+    setShowNewDm(false);
+    setActiveRoomId(roomId);
+    fetch("/api/dms")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setDms);
   }, []);
 
   const handleEditMessage = useCallback(
@@ -417,6 +405,11 @@ export function ChatView() {
                   isPrivate={activeRoom.isPrivate}
                   isDm={activeRoom.isDm}
                   memberCount={memberCount}
+                  dmInitial={
+                    activeRoom.isDm
+                      ? activeRoom.name[0]?.toUpperCase()
+                      : undefined
+                  }
                   mobileToggle={
                     <button
                       className={styles.mobileMenuBtn}
@@ -433,6 +426,7 @@ export function ChatView() {
                 key={activeRoomId}
                 roomId={activeRoomId}
                 roomName={activeRoom?.name}
+                isDm={activeRoom?.isDm}
                 messages={messages}
                 loading={msgLoading}
                 hasMore={hasMore}
@@ -443,7 +437,23 @@ export function ChatView() {
                 onEditMessage={handleEditMessage}
                 onDeleteMessage={handleDeleteMessage}
               />
-              <Composer roomId={activeRoomId} onTyping={handleTyping} />
+              <Composer
+                roomId={activeRoomId}
+                placeholder={
+                  activeRoom?.isDm
+                    ? `Message ${activeRoom.name}`
+                    : "Type a message..."
+                }
+                onMessageSent={(created) => {
+                  const msg = created as unknown as Message;
+                  if (msg.room_id === activeRoomRef.current) {
+                    setMessages((prev) =>
+                      prev.some((m) => m.id === msg.id) ? prev : [...prev, msg],
+                    );
+                  }
+                }}
+                onTyping={handleTyping}
+              />
             </>
           ) : (
             <div className={styles.placeholder}>No rooms available</div>
@@ -456,6 +466,12 @@ export function ChatView() {
           communityName={createRoomFor.communityName}
           onCreated={handleRoomCreated}
           onClose={() => setCreateRoomFor(null)}
+        />
+      )}
+      {showNewDm && (
+        <NewDmModal
+          onCreated={handleDmCreated}
+          onClose={() => setShowNewDm(false)}
         />
       )}
     </>
