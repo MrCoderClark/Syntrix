@@ -5,6 +5,7 @@
   padding: 10px 20px;
   border-bottom: 1px solid var(--rule-soft);
   flex-shrink: 0;
+  background: var(--surface);
 }
 
 .info {
@@ -12,6 +13,7 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+  flex: 1;
 }
 
 .hash {
@@ -30,10 +32,28 @@
   white-space: nowrap;
 }
 
+.divider {
+  width: 1px;
+  height: 18px;
+  background: var(--rule);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+.description {
+  font-size: 13px;
+  color: var(--ink-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 .actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .members {
@@ -43,4 +63,18 @@
   font-size: 13px;
   color: var(--ink-faint);
   font-family: var(--font-mono-family);
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 8px 12px;
+  }
+
+  .description {
+    display: none;
+  }
+
+  .divider {
+    display: none;
+  }
 }

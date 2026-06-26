@@ -1,41 +1,97 @@
 .composer {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  padding: 12px 20px 16px;
-  border-top: 1px solid var(--rule-soft);
+  padding: 0 20px 16px;
+  flex-shrink: 0;
   background: var(--surface);
 }
 
-.editorWrap {
-  flex: 1;
+.card {
   border: 1px solid var(--rule);
   border-radius: var(--radius-sm);
-  padding: 8px 12px;
   background: var(--paper);
   transition: border-color var(--duration-fast) ease;
-  min-height: 40px;
+  overflow: hidden;
+}
+
+.card:focus-within {
+  border-color: var(--rule);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.toolbarBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-xs);
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body-family);
+  transition:
+    color var(--duration-fast) ease,
+    background var(--duration-fast) ease;
+}
+
+.toolbarBtn:hover {
+  color: var(--ink);
+  background: var(--paper-warm);
+}
+
+.toolbarBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.toolbarActive {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 18px;
+  background: var(--rule-soft);
+  margin: 0 4px;
+}
+
+.editorWrap {
+  padding: 8px 12px;
+  min-height: 56px;
   max-height: 200px;
   overflow-y: auto;
 }
 
-.editorWrap:focus-within {
-  border-color: var(--accent);
-}
-
-.content .tiptap {
+.content :global(.tiptap) {
   outline: none;
+  border: none;
   font-family: var(--font-body-family);
   font-size: 14px;
   line-height: 1.5;
   color: var(--ink);
 }
 
-.content .tiptap p {
+.content :global(.tiptap):focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.content :global(.tiptap) p {
   margin: 0;
 }
 
-.content .tiptap p.is-editor-empty:first-child::before {
+.content :global(.tiptap) p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
   color: var(--ink-faint);
@@ -43,7 +99,7 @@
   height: 0;
 }
 
-.content .tiptap code {
+.content :global(.tiptap) code {
   font-family: var(--font-mono-family);
   font-size: 13px;
   background: var(--paper-warm);
@@ -51,13 +107,33 @@
   border-radius: 3px;
 }
 
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px 6px;
+}
+
+.hints {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-family: var(--font-mono-family);
+}
+
+.kbd {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
 .sendBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-xs);
   border: none;
   background: var(--accent);
   color: var(--paper);
@@ -70,6 +146,21 @@
   opacity: 0.85;
 }
 
+.sendBtn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
 .sendBtn:active {
   opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .composer {
+    padding: 0 12px 12px;
+  }
+
+  .hints {
+    display: none;
+  }
 }

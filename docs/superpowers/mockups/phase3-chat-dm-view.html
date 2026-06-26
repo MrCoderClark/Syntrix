@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Syntrix Chat — DM Conversation View</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --paper: #f6f3ec;
+    --paper-warm: #efeadf;
+    --ink: #1c1815;
+    --ink-soft: #4a4239;
+    --ink-faint: #8a7f72;
+    --rule: #d9d0bd;
+    --rule-soft: #e8e1d4;
+    --surface: #ffffff;
+    --accent: #e8472b;
+    --accent-soft: #f4d4c9;
+    --good: #2f6e4a;
+    --bad: #b03b3b;
+    --online: #43b581;
+
+    --font-display: 'Fraunces', 'Times New Roman', serif;
+    --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --radius-xs: 4px;
+
+    --sidebar-bg: #2a2520;
+    --sidebar-text: #c8bfb3;
+    --sidebar-text-bright: #f0ebe4;
+    --sidebar-hover: rgba(255,255,255,0.06);
+    --sidebar-active: rgba(255,255,255,0.12);
+    --sidebar-section: #8a7f72;
+    --chat-sidebar-bg: #332e28;
+    --chat-sidebar-hover: rgba(255,255,255,0.05);
+    --chat-sidebar-active: rgba(232,71,43,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    background: var(--paper);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 248px 1fr;
+    height: 100vh;
+  }
+
+  /* MAIN SIDEBAR */
+  .mainSidebar {
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .wordmark {
+    padding: 20px 20px 16px;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--sidebar-text-bright);
+    letter-spacing: -0.02em;
+  }
+  .wordmark .dot { color: var(--accent); }
+  .navLabel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sidebar-section);
+    padding: 16px 20px 6px;
+  }
+  .navItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    color: var(--sidebar-text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 120ms;
+    text-decoration: none;
+  }
+  .navItem:hover { background: var(--sidebar-hover); }
+  .navItem.active {
+    background: var(--sidebar-active);
+    color: var(--sidebar-text-bright);
+  }
+  .navItem svg { opacity: 0.7; flex-shrink: 0; }
+  .navItem.active svg { opacity: 1; }
+  .communityItem {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 20px; color: var(--sidebar-text); font-size: 13px;
+    cursor: pointer; transition: background 120ms;
+  }
+  .communityItem:hover { background: var(--sidebar-hover); }
+  .communityDot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+  .memberCount { margin-left: auto; font-size: 11px; color: var(--sidebar-section); font-family: var(--font-mono); }
+
+  /* CHAT AREA */
+  .chatArea {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ROOM LIST */
+  .roomList {
+    background: var(--chat-sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(0,0,0,0.15);
+    overflow-y: auto;
+  }
+  .roomListHeader {
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .roomListTitle {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--sidebar-text-bright);
+  }
+  .roomSection {
+    padding: 14px 12px 4px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .roomSectionLabel {
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--sidebar-section); flex: 1;
+  }
+  .roomSectionAdd {
+    width: 18px; height: 18px; border-radius: var(--radius-xs);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--sidebar-section); font-size: 14px; cursor: pointer;
+  }
+  .roomEntry {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 12px; margin: 1px 8px;
+    border-radius: var(--radius-xs);
+    color: var(--sidebar-text); font-size: 13.5px;
+    cursor: pointer; transition: background 120ms;
+  }
+  .roomEntry:hover { background: var(--chat-sidebar-hover); color: var(--sidebar-text-bright); }
+  .roomHash {
+    font-family: var(--font-mono); font-size: 13px;
+    color: var(--sidebar-section); width: 16px;
+    text-align: center; flex-shrink: 0; font-weight: 500;
+  }
+
+  /* DM entries */
+  .dmEntry {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 12px; margin: 1px 8px;
+    border-radius: var(--radius-xs);
+    color: var(--sidebar-text); font-size: 13.5px;
+    cursor: pointer; transition: background 120ms;
+  }
+  .dmEntry:hover { background: var(--chat-sidebar-hover); color: var(--sidebar-text-bright); }
+  .dmEntry.active { background: var(--chat-sidebar-active); color: var(--sidebar-text-bright); }
+  .dmAvatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; flex-shrink: 0;
+    position: relative;
+  }
+  .onlineDot {
+    position: absolute; bottom: -1px; right: -1px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--online); border: 2px solid var(--chat-sidebar-bg);
+  }
+  .dmInfo { flex: 1; min-width: 0; }
+  .dmName { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dmPreview { font-size: 11.5px; color: var(--sidebar-section); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dmTime { font-size: 10px; color: var(--sidebar-section); font-family: var(--font-mono); flex-shrink: 0; align-self: flex-start; padding-top: 2px; }
+
+  /* MESSAGE PANEL */
+  .messagePanel {
+    display: flex; flex-direction: column;
+    background: var(--surface); overflow: hidden;
+  }
+
+  /* DM Header */
+  .dmHeader {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 24px; height: 56px;
+    border-bottom: 1px solid var(--rule-soft);
+    flex-shrink: 0; background: var(--surface);
+  }
+  .dmHeaderAvatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; flex-shrink: 0;
+    position: relative;
+  }
+  .dmHeaderName {
+    font-weight: 700; font-size: 16px; color: var(--ink);
+  }
+  .dmHeaderOnline {
+    font-size: 12px; color: var(--online); font-family: var(--font-mono);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .dmHeaderOnline .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--online);
+  }
+  .dmHeaderActions {
+    margin-left: auto;
+    display: flex; gap: 4px;
+  }
+  .headerBtn {
+    width: 34px; height: 34px; border-radius: var(--radius-xs);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-faint); cursor: pointer; transition: background 120ms;
+  }
+  .headerBtn:hover { background: var(--paper-warm); color: var(--ink); }
+
+  /* Connection bar */
+  .connectionBar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 24px; font-size: 11px; color: var(--good);
+    font-family: var(--font-mono);
+    background: rgba(47,110,74,0.06);
+    border-bottom: 1px solid rgba(47,110,74,0.1);
+  }
+  .connectionDot { width: 6px; height: 6px; border-radius: 50%; background: var(--good); }
+
+  /* Message Feed */
+  .messageFeed { flex: 1; overflow-y: auto; padding: 16px 0; }
+
+  /* DM Beginning */
+  .dmBeginning {
+    padding: 32px 24px 16px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+  }
+  .dmBeginningAvatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .dmBeginningName {
+    font-family: var(--font-display); font-size: 22px;
+    font-weight: 700; color: var(--ink); margin-bottom: 4px;
+  }
+  .dmBeginningDesc {
+    font-size: 14px; color: var(--ink-faint); margin-bottom: 16px;
+  }
+  .dmBeginningRule { width: 100%; height: 1px; background: var(--rule-soft); }
+
+  .dateBar {
+    display: flex; align-items: center; gap: 16px;
+    padding: 8px 24px; margin: 8px 0;
+  }
+  .dateLine { flex: 1; height: 1px; background: var(--rule-soft); }
+  .dateText {
+    font-size: 11px; font-weight: 600; color: var(--ink-faint);
+    font-family: var(--font-mono); letter-spacing: 0.05em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+
+  .messageGroup {
+    padding: 2px 24px; position: relative;
+    transition: background 120ms;
+  }
+  .messageGroup:hover { background: var(--paper); }
+
+  .messageGroupHeader {
+    display: flex; align-items: center; gap: 10px;
+    padding-top: 12px; margin-bottom: 4px;
+  }
+  .msgAvatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    flex-shrink: 0; overflow: hidden;
+  }
+  .msgAvatar img { width: 100%; height: 100%; object-fit: cover; }
+  .msgAvatarFallback {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; flex-shrink: 0;
+  }
+  .msgAuthorRow { display: flex; align-items: baseline; gap: 8px; }
+  .msgAuthor { font-weight: 600; font-size: 14.5px; color: var(--ink); cursor: pointer; }
+  .msgAuthor:hover { text-decoration: underline; }
+  .msgTimestamp { font-size: 11px; color: var(--ink-faint); font-family: var(--font-mono); }
+
+  .msgBody {
+    padding-left: 46px; font-size: 14.5px;
+    line-height: 1.55; color: var(--ink); word-break: break-word;
+  }
+  .msgBody p { margin: 0 0 2px; }
+  .msgBody p:last-child { margin-bottom: 0; }
+  .msgBody a { color: var(--accent); text-decoration: none; }
+  .msgBody a:hover { text-decoration: underline; }
+
+  .msgContinuation { padding-left: 46px; padding-top: 1px; position: relative; }
+  .msgContinuation .msgBody { padding-left: 0; }
+  .msgContinuationTime {
+    position: absolute; left: 4px; top: 3px;
+    font-size: 10px; font-family: var(--font-mono);
+    color: var(--ink-faint); opacity: 0; transition: opacity 120ms;
+  }
+  .messageGroup:hover .msgContinuationTime { opacity: 1; }
+
+  /* Hover actions */
+  .msgActions {
+    position: absolute; top: -14px; right: 24px;
+    display: flex; gap: 1px;
+    background: var(--surface); border: 1px solid var(--rule-soft);
+    border-radius: var(--radius-xs);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    opacity: 0; pointer-events: none; transition: opacity 100ms; z-index: 2;
+  }
+  .messageGroup:hover .msgActions { opacity: 1; pointer-events: auto; }
+  .msgActionBtn {
+    width: 30px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-faint); cursor: pointer; transition: background 100ms;
+  }
+  .msgActionBtn:hover { background: var(--paper-warm); color: var(--ink); }
+  .msgActionBtn:first-child { border-radius: 3px 0 0 3px; }
+  .msgActionBtn:last-child { border-radius: 0 3px 3px 0; }
+
+  /* Reactions */
+  .reactionsRow { display: flex; gap: 4px; padding-left: 46px; padding-top: 4px; }
+  .reaction {
+    display: flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--rule-soft); background: var(--paper);
+    font-size: 12px; cursor: pointer; transition: background 120ms;
+  }
+  .reaction:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .reactionEmoji { font-size: 14px; }
+  .reactionCount { font-size: 11px; font-weight: 600; color: var(--ink-soft); font-family: var(--font-mono); }
+
+  /* Composer */
+  .composer { padding: 0 24px 20px; flex-shrink: 0; }
+  .composerInner {
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: var(--radius); overflow: hidden;
+    transition: border-color 120ms, box-shadow 120ms;
+  }
+  .composerInner.focused {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .composerToolbar {
+    display: flex; align-items: center; gap: 2px;
+    padding: 6px 10px; border-bottom: 1px solid var(--rule-soft);
+  }
+  .toolbarBtn {
+    width: 30px; height: 28px; border-radius: var(--radius-xs);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-faint); cursor: pointer; transition: background 100ms;
+  }
+  .toolbarBtn:hover { background: var(--paper-warm); color: var(--ink); }
+  .toolbarDivider { width: 1px; height: 20px; background: var(--rule-soft); margin: 0 4px; }
+  .composerInput {
+    padding: 10px 14px; min-height: 42px;
+    font-family: var(--font-body); font-size: 14.5px; color: var(--ink);
+  }
+  .composerPlaceholder { color: var(--ink-faint); }
+  .composerFooter {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 10px;
+  }
+  .composerHint { font-size: 11px; color: var(--ink-faint); font-family: var(--font-mono); }
+  .composerHint kbd {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 18px; padding: 0 4px;
+    border-radius: 3px; background: var(--paper-warm);
+    border: 1px solid var(--rule-soft);
+    font-size: 10px; font-family: var(--font-mono); color: var(--ink-faint);
+  }
+  .sendButton {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 30px; border-radius: var(--radius-sm);
+    background: var(--accent); color: white; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- MAIN SIDEBAR -->
+  <nav class="mainSidebar">
+    <div class="wordmark">Syntrix<span class="dot">.</span></div>
+    <div class="navLabel">For you</div>
+    <a class="navItem" href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Feed</a>
+    <a class="navItem" href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Explore</a>
+    <a class="navItem active" href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Chat</a>
+    <a class="navItem" href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My profile</a>
+    <div class="navLabel">Communities</div>
+    <a class="communityItem"><span class="communityDot" style="background:#0d4d57"></span>c/golang<span class="memberCount">1</span></a>
+    <a class="communityItem"><span class="communityDot" style="background:#5d2424"></span>c/halo<span class="memberCount">1</span></a>
+    <a class="communityItem"><span class="communityDot" style="background:#1e3a5f"></span>c/homelab<span class="memberCount">1</span></a>
+    <a class="communityItem"><span class="communityDot" style="background:#354823"></span>c/proxmox<span class="memberCount">1</span></a>
+    <a class="communityItem"><span class="communityDot" style="background:#4a1e1e"></span>c/security<span class="memberCount">1</span></a>
+    <a class="communityItem"><span class="communityDot" style="background:#3a2347"></span>c/sre<span class="memberCount">1</span></a>
+  </nav>
+
+  <!-- CHAT AREA -->
+  <div class="chatArea">
+    <!-- ROOM LIST -->
+    <div class="roomList">
+      <div class="roomListHeader">
+        <span class="roomListTitle">Channels</span>
+      </div>
+
+      <div class="roomSection">
+        <span class="roomSectionLabel">Direct Messages</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="dmEntry active">
+        <div class="dmAvatar" style="background:#5d4037">
+          <span>M</span>
+          <span class="onlineDot"></span>
+        </div>
+        <div class="dmInfo">
+          <div class="dmName">Mike Chen</div>
+          <div class="dmPreview">Hey, did you see the new PR?</div>
+        </div>
+        <span class="dmTime">2m</span>
+      </div>
+      <div class="dmEntry">
+        <div class="dmAvatar" style="background:#2f5d3a"><span>S</span></div>
+        <div class="dmInfo">
+          <div class="dmName">Sarah Kim</div>
+          <div class="dmPreview">That deploy looks good</div>
+        </div>
+        <span class="dmTime">1h</span>
+      </div>
+
+      <div class="roomSection">
+        <span class="communityDot" style="background:#0d4d57"></span>
+        <span class="roomSectionLabel">Go Programming</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="roomEntry"><span class="roomHash">#</span><span>general</span></div>
+      <div class="roomEntry"><span class="roomHash">#</span><span>code-review</span></div>
+
+      <div class="roomSection">
+        <span class="communityDot" style="background:#5d2424"></span>
+        <span class="roomSectionLabel">Halo</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="roomEntry"><span class="roomHash">#</span><span>general</span></div>
+
+      <div class="roomSection">
+        <span class="communityDot" style="background:#1e3a5f"></span>
+        <span class="roomSectionLabel">Homelab</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="roomEntry"><span class="roomHash">#</span><span>general</span></div>
+
+      <div class="roomSection">
+        <span class="communityDot" style="background:#4a1e1e"></span>
+        <span class="roomSectionLabel">Security</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="roomEntry"><span class="roomHash">#</span><span>general</span></div>
+
+      <div class="roomSection">
+        <span class="communityDot" style="background:#3a2347"></span>
+        <span class="roomSectionLabel">SRE & DevOps</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="roomEntry"><span class="roomHash">#</span><span>general</span></div>
+    </div>
+
+    <!-- MESSAGE PANEL — DM View -->
+    <div class="messagePanel">
+      <!-- DM Header -->
+      <div class="dmHeader">
+        <div class="dmHeaderAvatar" style="background:#5d4037; color:#e0d6cc">
+          <span>MC</span>
+          <span class="onlineDot" style="border-color: var(--surface)"></span>
+        </div>
+        <div>
+          <div class="dmHeaderName">Mike Chen</div>
+          <div class="dmHeaderOnline"><span class="dot"></span> Online</div>
+        </div>
+        <div class="dmHeaderActions">
+          <div class="headerBtn" title="Search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connection bar -->
+      <div class="connectionBar">
+        <span class="connectionDot"></span> Connected
+      </div>
+
+      <!-- Message Feed -->
+      <div class="messageFeed">
+        <!-- DM Beginning -->
+        <div class="dmBeginning">
+          <div class="dmBeginningAvatar" style="background:#5d4037; color:#e0d6cc">MC</div>
+          <div class="dmBeginningName">Mike Chen</div>
+          <div class="dmBeginningDesc">This is the beginning of your direct message history with <strong>Mike Chen</strong>.</div>
+          <div class="dmBeginningRule"></div>
+        </div>
+
+        <div class="dateBar">
+          <span class="dateLine"></span>
+          <span class="dateText">Today</span>
+          <span class="dateLine"></span>
+        </div>
+
+        <!-- Message 1 — Mike -->
+        <div class="messageGroup">
+          <div class="msgActions">
+            <div class="msgActionBtn" title="React"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+            <div class="msgActionBtn" title="Reply"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg></div>
+            <div class="msgActionBtn" title="More"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></div>
+          </div>
+          <div class="messageGroupHeader">
+            <div class="msgAvatarFallback" style="background:#5d4037; color:#e0d6cc">MC</div>
+            <div class="msgAuthorRow">
+              <span class="msgAuthor">Mike Chen</span>
+              <span class="msgTimestamp">10:14 AM</span>
+            </div>
+          </div>
+          <div class="msgBody"><p>Hey Joe! Did you see the new PR I put up for the WebSocket gateway?</p></div>
+          <div class="msgContinuation">
+            <span class="msgContinuationTime">10:14</span>
+            <div class="msgBody"><p>I refactored the connection manager to use a per-room subscription map instead of the flat list</p></div>
+          </div>
+        </div>
+
+        <!-- Message 2 — Joe -->
+        <div class="messageGroup">
+          <div class="messageGroupHeader">
+            <div class="msgAvatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=joe" alt="Joe"></div>
+            <div class="msgAuthorRow">
+              <span class="msgAuthor">Joe Clark</span>
+              <span class="msgTimestamp">10:18 AM</span>
+            </div>
+          </div>
+          <div class="msgBody"><p>Yeah I saw it! The approach looks solid. I had one question about the cleanup on disconnect though</p></div>
+        </div>
+
+        <!-- Message 3 — Mike -->
+        <div class="messageGroup">
+          <div class="messageGroupHeader">
+            <div class="msgAvatarFallback" style="background:#5d4037; color:#e0d6cc">MC</div>
+            <div class="msgAuthorRow">
+              <span class="msgAuthor">Mike Chen</span>
+              <span class="msgTimestamp">10:22 AM</span>
+            </div>
+          </div>
+          <div class="msgBody"><p>Good catch — I added a defer in the handler that iterates all subscribed rooms and removes the connection. Should be safe even if the client drops without sending <code>room.unsubscribe</code></p></div>
+          <div class="reactionsRow">
+            <span class="reaction"><span class="reactionEmoji">&#128077;</span><span class="reactionCount">1</span></span>
+          </div>
+        </div>
+
+        <!-- Message 4 — Joe -->
+        <div class="messageGroup">
+          <div class="messageGroupHeader">
+            <div class="msgAvatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=joe" alt="Joe"></div>
+            <div class="msgAuthorRow">
+              <span class="msgAuthor">Joe Clark</span>
+              <span class="msgTimestamp">10:25 AM</span>
+            </div>
+          </div>
+          <div class="msgBody"><p>Perfect. I'll approve it after lunch. Also — want to grab coffee tomorrow? Need to chat about the Phase 4 roadmap</p></div>
+        </div>
+
+        <!-- Message 5 — Mike -->
+        <div class="messageGroup">
+          <div class="messageGroupHeader">
+            <div class="msgAvatarFallback" style="background:#5d4037; color:#e0d6cc">MC</div>
+            <div class="msgAuthorRow">
+              <span class="msgAuthor">Mike Chen</span>
+              <span class="msgTimestamp">10:28 AM</span>
+            </div>
+          </div>
+          <div class="msgBody"><p>Sure! How about 10am at the usual spot?</p></div>
+        </div>
+      </div>
+
+      <!-- Composer -->
+      <div class="composer">
+        <div class="composerInner">
+          <div class="composerToolbar">
+            <div class="toolbarBtn" title="Bold"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg></div>
+            <div class="toolbarBtn" title="Italic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></div>
+            <div class="toolbarBtn" title="Code"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+            <div class="toolbarDivider"></div>
+            <div class="toolbarBtn" title="Link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+            <div class="toolbarBtn" title="Attach"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div>
+          </div>
+          <div class="composerInput">
+            <span class="composerPlaceholder">Message Mike Chen</span>
+          </div>
+          <div class="composerFooter">
+            <span class="composerHint"><kbd>Enter</kbd> to send &middot; <kbd>Shift</kbd>+<kbd>Enter</kbd> new line</span>
+            <div class="sendButton">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -7,7 +7,8 @@
 }
 
 .roomListPanel {
-  border-right: 1px solid var(--rule-soft);
+  background: #332e28;
+  border-right: 1px solid rgba(0, 0, 0, 0.15);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -18,6 +19,7 @@
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
+  background: var(--surface);
 }
 
 .placeholder {
@@ -42,29 +44,46 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 20px;
-  border-bottom: 1px solid var(--rule-soft);
-  font-size: 12px;
-  color: var(--ink-faint);
+  padding: 4px 24px;
+  font-size: 11px;
+  font-family: var(--font-mono-family);
   flex-shrink: 0;
 }
 
 .statusDot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.connected {
+.statusConnected {
+  color: var(--good);
+  background: rgba(47, 110, 74, 0.06);
+  border-bottom: 1px solid rgba(47, 110, 74, 0.1);
+}
+
+.statusConnected .statusDot {
   background: var(--good);
 }
 
-.disconnected {
+.statusDisconnected {
+  color: var(--bad);
+  background: rgba(176, 59, 59, 0.06);
+  border-bottom: 1px solid rgba(176, 59, 59, 0.1);
+}
+
+.statusDisconnected .statusDot {
   background: var(--bad);
 }
 
-.connecting {
+.statusConnecting {
+  color: var(--ink-faint);
+  background: rgba(138, 127, 114, 0.06);
+  border-bottom: 1px solid rgba(138, 127, 114, 0.1);
+}
+
+.statusConnecting .statusDot {
   background: var(--ink-faint);
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -101,9 +120,7 @@
     bottom: 0;
     width: 280px;
     z-index: 50;
-    background: var(--surface);
-    border-right: 1px solid var(--rule-soft);
-    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
   }
 
   .roomListOpen {
@@ -137,11 +154,11 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.4);
     z-index: 40;
   }
 
   .statusBar {
-    padding: 8px 12px;
+    padding: 4px 12px;
   }
 }
