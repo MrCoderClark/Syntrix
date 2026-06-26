@@ -417,6 +417,11 @@ export function ChatView() {
                   isPrivate={activeRoom.isPrivate}
                   isDm={activeRoom.isDm}
                   memberCount={memberCount}
+                  dmInitial={
+                    activeRoom.isDm
+                      ? activeRoom.name[0]?.toUpperCase()
+                      : undefined
+                  }
                   mobileToggle={
                     <button
                       className={styles.mobileMenuBtn}
@@ -433,6 +438,7 @@ export function ChatView() {
                 key={activeRoomId}
                 roomId={activeRoomId}
                 roomName={activeRoom?.name}
+                isDm={activeRoom?.isDm}
                 messages={messages}
                 loading={msgLoading}
                 hasMore={hasMore}
@@ -443,7 +449,15 @@ export function ChatView() {
                 onEditMessage={handleEditMessage}
                 onDeleteMessage={handleDeleteMessage}
               />
-              <Composer roomId={activeRoomId} onTyping={handleTyping} />
+              <Composer
+                roomId={activeRoomId}
+                placeholder={
+                  activeRoom?.isDm
+                    ? `Message ${activeRoom.name}`
+                    : "Type a message..."
+                }
+                onTyping={handleTyping}
+              />
             </>
           ) : (
             <div className={styles.placeholder}>No rooms available</div>

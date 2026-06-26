@@ -152,6 +152,15 @@
   color: var(--sl-text-bright);
 }
 
+.dmTime {
+  font-size: 10px;
+  color: var(--sl-text-faint);
+  font-family: var(--font-mono-family);
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding-top: 2px;
+}
+
 .empty {
   padding: 20px;
   text-align: center;

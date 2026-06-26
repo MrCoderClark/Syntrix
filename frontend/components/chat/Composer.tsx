@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import type { JSONContent } from "@tiptap/react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import TiptapLink from "@tiptap/extension-link";
@@ -11,18 +11,18 @@ import styles from "./Composer.module.css";
 
 interface ComposerProps {
   roomId: string;
+  placeholder?: string;
   onMessageSent?: () => void;
   onTyping?: () => void;
 }
 
-const EXTENSIONS = [
+const BASE_EXTENSIONS = [
   StarterKit.configure({
     codeBlock: false,
     heading: false,
     horizontalRule: false,
   }),
   TiptapLink.configure({ openOnClick: false, autolink: true }),
-  Placeholder.configure({ placeholder: "Type a message..." }),
 ];
 
 function isEmptyDoc(json: JSONContent): boolean {
@@ -33,13 +33,23 @@ function isEmptyDoc(json: JSONContent): boolean {
   );
 }
 
-export function Composer({ roomId, onMessageSent, onTyping }: ComposerProps) {
+export function Composer({
+  roomId,
+  placeholder = "Type a message...",
+  onMessageSent,
+  onTyping,
+}: ComposerProps) {
   const sendingRef = useRef(false);
   const handleSendRef = useRef<() => void>(() => {});
   const lastTypingRef = useRef(0);
 
+  const extensions = useMemo(
+    () => [...BASE_EXTENSIONS, Placeholder.configure({ placeholder })],
+    [placeholder],
+  );
+
   const editor = useEditor({
-    extensions: EXTENSIONS,
+    extensions,
     content: { type: "doc", content: [] },
     onUpdate() {
       const now = Date.now();

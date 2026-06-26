@@ -195,6 +195,42 @@
   font-size: 12px;
 }
 
+.dmBeginning {
+  padding: 32px 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.dmBeginningAvatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #5d4037;
+  color: #e0d6cc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.dmBeginningName {
+  font-family: var(--font-display-family);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.dmBeginningDesc {
+  font-size: 14px;
+  color: var(--ink-faint);
+  margin-bottom: 16px;
+}
+
 .beginning {
   padding: 24px 24px 16px;
 }

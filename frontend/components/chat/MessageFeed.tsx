@@ -22,6 +22,7 @@ export interface Message {
 interface MessageFeedProps {
   roomId: string;
   roomName?: string;
+  isDm?: boolean;
   messages: Message[];
   loading: boolean;
   hasMore: boolean;
@@ -95,6 +96,7 @@ function isDifferentDay(a: string, b: string): boolean {
 export function MessageFeed({
   roomId: _roomId,
   roomName,
+  isDm = false,
   messages,
   loading,
   hasMore,
@@ -141,7 +143,20 @@ export function MessageFeed({
       {loadingMore && (
         <div className={styles.loadingMore}>Loading older messages...</div>
       )}
-      {!hasMore && messages.length > 0 && (
+      {!hasMore && messages.length > 0 && isDm && roomName && (
+        <div className={styles.dmBeginning}>
+          <span className={styles.dmBeginningAvatar}>
+            {roomName[0]?.toUpperCase() ?? "?"}
+          </span>
+          <div className={styles.dmBeginningName}>{roomName}</div>
+          <div className={styles.dmBeginningDesc}>
+            This is the beginning of your direct message history with{" "}
+            <strong>{roomName}</strong>.
+          </div>
+          <div className={styles.beginningRule} />
+        </div>
+      )}
+      {!hasMore && messages.length > 0 && !isDm && (
         <div className={styles.beginning}>
           <div className={styles.beginningTitle}>
             {roomName ? `# ${roomName}` : "Welcome"}

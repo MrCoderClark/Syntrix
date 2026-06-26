@@ -1,6 +1,7 @@
 "use client";
 
 import { LockIcon } from "@/components/icons";
+import { timeAgo } from "@/lib/text";
 import styles from "./RoomList.module.css";
 
 interface Room {
@@ -91,6 +92,11 @@ export function RoomList({
                   </span>
                 )}
               </div>
+              {dm.last_message_at && (
+                <span className={styles.dmTime}>
+                  {timeAgo(dm.last_message_at)}
+                </span>
+              )}
             </button>
           ))}
         </>
