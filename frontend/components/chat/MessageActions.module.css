@@ -1,0 +1,27 @@
+.actions {
+  display: flex;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius-xs);
+  padding: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.actionBtn:hover {
+  background: var(--paper-warm);
+  color: var(--ink);
+}

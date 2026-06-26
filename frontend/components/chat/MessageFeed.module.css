@@ -18,10 +18,52 @@
 .message {
   padding: 4px 8px;
   border-radius: var(--radius-xs);
+  position: relative;
 }
 
 .message:hover {
   background: var(--paper-warm);
+}
+
+.actionsSlot {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) ease;
+  z-index: 1;
+}
+
+.message:hover .actionsSlot {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.editWrap {
+  padding-left: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.editInput {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-body-family);
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.editHint {
+  font-size: 11px;
+  color: var(--ink-faint);
+  display: block;
 }
 
 .deleted {

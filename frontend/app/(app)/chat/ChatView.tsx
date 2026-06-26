@@ -1,10 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWebSocket } from "@/lib/ws";
 import { RoomList } from "@/components/chat/RoomList";
+import { CreateRoomModal } from "@/components/chat/CreateRoomModal";
 import { MessageFeed } from "@/components/chat/MessageFeed";
 import { Composer } from "@/components/chat/Composer";
+import { RoomHeader } from "@/components/chat/RoomHeader";
+import { MenuIcon, XIcon } from "@/components/icons";
 import type { CommunityGroup, DM } from "@/components/chat/RoomList";
 import type { Message } from "@/components/chat/MessageFeed";
 import styles from "./ChatView.module.css";
@@ -31,6 +34,48 @@ export function ChatView() {
   const [dms, setDms] = useState<DM[]>([]);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [sidebarLoading, setSidebarLoading] = useState(true);
+  const [createRoomFor, setCreateRoomFor] = useState<{
+    communityId: string;
+    communityName: string;
+  } | null>(null);
+  const [mobileRoomListOpen, setMobileRoomListOpen] = useState(false);
+
+  // Current user
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setCurrentUserId(data.id);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Derive active room metadata
+  const activeRoom = useMemo(() => {
+    if (!activeRoomId) return null;
+    for (const c of communities) {
+      const room = c.rooms.find((r) => r.id === activeRoomId);
+      if (room)
+        return { name: room.name, isPrivate: room.is_private, isDm: false };
+    }
+    const dm = dms.find((d) => d.room_id === activeRoomId);
+    if (dm)
+      return { name: dm.other_user_display_name, isPrivate: false, isDm: true };
+    return null;
+  }, [activeRoomId, communities, dms]);
+
+  // Member count for active room
+  const [memberCount, setMemberCount] = useState(0);
+
+  useEffect(() => {
+    if (!activeRoomId) return;
+    fetch(`/api/rooms/${activeRoomId}/members`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((members: unknown[]) => setMemberCount(members.length))
+      .catch(() => {});
+  }, [activeRoomId]);
 
   // Message state (owned here, passed down to MessageFeed)
   const [messages, setMessages] = useState<Message[]>([]);
@@ -221,6 +266,101 @@ export function ChatView() {
 
   const handleSelectRoom = useCallback((roomId: string) => {
     setActiveRoomId(roomId);
+    setMobileRoomListOpen(false);
+  }, []);
+
+  const handleCreateRoom = useCallback(
+    (communityId: string) => {
+      const community = communities.find((c) => c.id === communityId);
+      if (community)
+        setCreateRoomFor({ communityId, communityName: community.name });
+    },
+    [communities],
+  );
+
+  const handleRoomCreated = useCallback(
+    (room: {
+      id: string;
+      name: string;
+      slug: string;
+      is_private: boolean;
+      is_default: boolean;
+      is_dm: boolean;
+      community_id: string | null;
+    }) => {
+      setCommunities((prev) =>
+        prev.map((c) =>
+          c.id === room.community_id ? { ...c, rooms: [...c.rooms, room] } : c,
+        ),
+      );
+      setActiveRoomId(room.id);
+      setCreateRoomFor(null);
+    },
+    [],
+  );
+
+  const handleNewDm = useCallback(() => {
+    const handle = window.prompt("Enter username to message:");
+    if (!handle) return;
+    fetch(`/api/users/${handle}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((user) => {
+        if (!user) {
+          alert("User not found");
+          return;
+        }
+        return fetch(`/api/dms/${user.id}`, { method: "POST" });
+      })
+      .then((r) => (r && r.ok ? r.json() : null))
+      .then((room) => {
+        if (!room) return;
+        setActiveRoomId(room.id);
+        // Refresh DM list
+        fetch("/api/dms")
+          .then((r) => (r.ok ? r.json() : []))
+          .then(setDms);
+      })
+      .catch(() => alert("Failed to create DM"));
+  }, []);
+
+  const handleEditMessage = useCallback(
+    async (messageId: string, bodyJson: object) => {
+      const res = await fetch(`/api/messages/${messageId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body_json: bodyJson }),
+      });
+      if (!res.ok) {
+        alert("Failed to edit message");
+        return;
+      }
+      const updated = await res.json();
+      setMessages((prev) =>
+        prev.map((m) => (m.id === updated.id ? updated : m)),
+      );
+    },
+    [],
+  );
+
+  const handleDeleteMessage = useCallback(async (messageId: string) => {
+    if (!confirm("Delete this message?")) return;
+    const res = await fetch(`/api/messages/${messageId}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert("Failed to delete message");
+      return;
+    }
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === messageId
+          ? {
+              ...m,
+              deleted_at: new Date().toISOString(),
+              body_html: "",
+              body_json: null,
+            }
+          : m,
+      ),
+    );
   }, []);
 
   const handleTyping = useCallback(() => {
@@ -234,44 +374,86 @@ export function ChatView() {
   }
 
   return (
-    <div className={styles.chatView}>
-      <div className={styles.roomListPanel}>
-        <RoomList
-          communities={communities}
-          dms={dms}
-          activeRoomId={activeRoomId}
-          onSelectRoom={handleSelectRoom}
-        />
-      </div>
-      <div className={styles.messagePanel}>
-        {activeRoomId ? (
-          <>
-            <div className={styles.statusBar}>
-              <span
-                className={`${styles.statusDot} ${styles[wsStatus]}`}
-                aria-hidden="true"
-              />
-              {wsStatus === "connected"
-                ? "Connected"
-                : wsStatus === "connecting"
-                  ? "Connecting..."
-                  : "Disconnected"}
-            </div>
-            <MessageFeed
-              roomId={activeRoomId}
-              messages={messages}
-              loading={msgLoading}
-              hasMore={hasMore}
-              loadingMore={loadingMore}
-              onLoadMore={handleLoadMore}
-              typingUsers={typingUsers}
-            />
-            <Composer roomId={activeRoomId} onTyping={handleTyping} />
-          </>
-        ) : (
-          <div className={styles.placeholder}>No rooms available</div>
+    <>
+      <div className={styles.chatView}>
+        <div
+          className={`${styles.roomListPanel} ${mobileRoomListOpen ? styles.roomListOpen : ""}`}
+        >
+          <RoomList
+            communities={communities}
+            dms={dms}
+            activeRoomId={activeRoomId}
+            onSelectRoom={handleSelectRoom}
+            onCreateRoom={handleCreateRoom}
+            onNewDm={handleNewDm}
+          />
+        </div>
+        {mobileRoomListOpen && (
+          <div
+            className={styles.mobileOverlay}
+            onClick={() => setMobileRoomListOpen(false)}
+          />
         )}
+        <div className={styles.messagePanel}>
+          {activeRoomId ? (
+            <>
+              <div className={styles.statusBar}>
+                <span
+                  className={`${styles.statusDot} ${styles[wsStatus]}`}
+                  aria-hidden="true"
+                />
+                {wsStatus === "connected"
+                  ? "Connected"
+                  : wsStatus === "connecting"
+                    ? "Connecting..."
+                    : "Disconnected"}
+              </div>
+              {activeRoom && (
+                <RoomHeader
+                  roomName={activeRoom.name}
+                  isPrivate={activeRoom.isPrivate}
+                  isDm={activeRoom.isDm}
+                  memberCount={memberCount}
+                  mobileToggle={
+                    <button
+                      className={styles.mobileMenuBtn}
+                      onClick={() => setMobileRoomListOpen((o) => !o)}
+                      aria-label="Toggle room list"
+                      aria-expanded={mobileRoomListOpen}
+                    >
+                      {mobileRoomListOpen ? <XIcon /> : <MenuIcon />}
+                    </button>
+                  }
+                />
+              )}
+              <MessageFeed
+                key={activeRoomId}
+                roomId={activeRoomId}
+                messages={messages}
+                loading={msgLoading}
+                hasMore={hasMore}
+                loadingMore={loadingMore}
+                onLoadMore={handleLoadMore}
+                typingUsers={typingUsers}
+                currentUserId={currentUserId}
+                onEditMessage={handleEditMessage}
+                onDeleteMessage={handleDeleteMessage}
+              />
+              <Composer roomId={activeRoomId} onTyping={handleTyping} />
+            </>
+          ) : (
+            <div className={styles.placeholder}>No rooms available</div>
+          )}
+        </div>
       </div>
-    </div>
+      {createRoomFor && (
+        <CreateRoomModal
+          communityId={createRoomFor.communityId}
+          communityName={createRoomFor.communityName}
+          onCreated={handleRoomCreated}
+          onClose={() => setCreateRoomFor(null)}
+        />
+      )}
+    </>
   );
 }
