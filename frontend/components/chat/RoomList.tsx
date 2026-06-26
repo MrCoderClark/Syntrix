@@ -1,5 +1,6 @@
 "use client";
 
+import { LockIcon } from "@/components/icons";
 import styles from "./RoomList.module.css";
 
 interface Room {
@@ -51,6 +52,9 @@ export function RoomList({
 }: RoomListProps) {
   return (
     <div className={styles.list}>
+      <div className={styles.header}>
+        <span className={styles.headerTitle}>Chat</span>
+      </div>
       <div className={styles.sectionLabel}>
         Direct Messages
         {onNewDm && (
@@ -121,7 +125,7 @@ export function RoomList({
               onClick={() => onSelectRoom(room.id)}
             >
               <span className={styles.hash}>
-                {room.is_private ? "🔒" : "#"}
+                {room.is_private ? <LockIcon size={13} /> : "#"}
               </span>
               <span className={styles.roomName}>{room.name}</span>
             </button>

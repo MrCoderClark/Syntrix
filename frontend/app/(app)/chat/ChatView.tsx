@@ -91,6 +91,12 @@ export function ChatView() {
 
   // WebSocket
   const { status: wsStatus, send, lastMessage } = useWebSocket();
+  const statusClass =
+    wsStatus === "connected"
+      ? styles.statusConnected
+      : wsStatus === "connecting"
+        ? styles.statusConnecting
+        : styles.statusDisconnected;
   const prevRoomRef = useRef<string | null>(null);
   const activeRoomRef = useRef<string | null>(null);
   activeRoomRef.current = activeRoomId;
@@ -397,11 +403,8 @@ export function ChatView() {
         <div className={styles.messagePanel}>
           {activeRoomId ? (
             <>
-              <div className={styles.statusBar}>
-                <span
-                  className={`${styles.statusDot} ${styles[wsStatus]}`}
-                  aria-hidden="true"
-                />
+              <div className={`${styles.statusBar} ${statusClass}`}>
+                <span className={styles.statusDot} aria-hidden="true" />
                 {wsStatus === "connected"
                   ? "Connected"
                   : wsStatus === "connecting"
@@ -429,6 +432,7 @@ export function ChatView() {
               <MessageFeed
                 key={activeRoomId}
                 roomId={activeRoomId}
+                roomName={activeRoom?.name}
                 messages={messages}
                 loading={msgLoading}
                 hasMore={hasMore}

@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Syntrix Chat — Redesigned UI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --paper: #f6f3ec;
+    --paper-warm: #efeadf;
+    --ink: #1c1815;
+    --ink-soft: #4a4239;
+    --ink-faint: #8a7f72;
+    --rule: #d9d0bd;
+    --rule-soft: #e8e1d4;
+    --surface: #ffffff;
+    --accent: #e8472b;
+    --accent-soft: #f4d4c9;
+    --good: #2f6e4a;
+    --bad: #b03b3b;
+    --sidebar-bg: #2a2520;
+    --sidebar-text: #c8bfb3;
+    --sidebar-text-bright: #f0ebe4;
+    --sidebar-hover: rgba(255,255,255,0.06);
+    --sidebar-active: rgba(255,255,255,0.12);
+    --sidebar-section: #8a7f72;
+    --chat-sidebar-bg: #332e28;
+    --chat-sidebar-hover: rgba(255,255,255,0.05);
+    --chat-sidebar-active: rgba(232,71,43,0.15);
+    --chat-sidebar-active-text: #f0ebe4;
+    --online: #43b581;
+
+    --font-display: 'Fraunces', 'Times New Roman', serif;
+    --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --radius-xs: 4px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    background: var(--paper);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ========= LAYOUT ========= */
+  .app {
+    display: grid;
+    grid-template-columns: 248px 1fr;
+    height: 100vh;
+  }
+
+  /* ========= MAIN SIDEBAR (existing app nav) ========= */
+  .mainSidebar {
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow-y: auto;
+  }
+
+  .wordmark {
+    padding: 20px 20px 16px;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--sidebar-text-bright);
+    letter-spacing: -0.02em;
+  }
+  .wordmark .dot { color: var(--accent); }
+
+  .navLabel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sidebar-section);
+    padding: 16px 20px 6px;
+  }
+
+  .navItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    color: var(--sidebar-text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 120ms;
+    text-decoration: none;
+  }
+  .navItem:hover { background: var(--sidebar-hover); }
+  .navItem.active {
+    background: var(--sidebar-active);
+    color: var(--sidebar-text-bright);
+  }
+  .navItem svg { opacity: 0.7; flex-shrink: 0; }
+  .navItem.active svg { opacity: 1; }
+
+  .communityItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 20px;
+    color: var(--sidebar-text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 120ms;
+  }
+  .communityItem:hover { background: var(--sidebar-hover); }
+  .communityDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .memberCount {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--sidebar-section);
+    font-family: var(--font-mono);
+  }
+
+  /* ========= CHAT AREA ========= */
+  .chatArea {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ========= ROOM LIST (chat sidebar) ========= */
+  .roomList {
+    background: var(--chat-sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(0,0,0,0.15);
+    overflow-y: auto;
+  }
+
+  .roomListHeader {
+    padding: 16px 16px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .roomListTitle {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--sidebar-text-bright);
+    letter-spacing: -0.01em;
+  }
+  .roomListSearch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 12px;
+    padding: 7px 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-xs);
+    color: var(--sidebar-section);
+    font-size: 12px;
+    font-family: var(--font-body);
+  }
+  .roomListSearch svg { opacity: 0.5; flex-shrink: 0; }
+
+  .roomSection {
+    padding: 14px 12px 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .roomSectionLabel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--sidebar-section);
+    flex: 1;
+  }
+  .roomSectionAdd {
+    width: 18px;
+    height: 18px;
+    border-radius: var(--radius-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sidebar-section);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 120ms;
+  }
+  .roomSectionAdd:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--sidebar-text-bright);
+  }
+
+  .roomEntry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    margin: 1px 8px;
+    border-radius: var(--radius-xs);
+    color: var(--sidebar-text);
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: background 120ms;
+  }
+  .roomEntry:hover {
+    background: var(--chat-sidebar-hover);
+    color: var(--sidebar-text-bright);
+  }
+  .roomEntry.active {
+    background: var(--chat-sidebar-active);
+    color: var(--sidebar-text-bright);
+  }
+  .roomEntry.active .roomHash {
+    color: var(--accent);
+  }
+  .roomHash {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--sidebar-section);
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  .roomName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .roomUnread {
+    margin-left: auto;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+  }
+
+  /* DM entries */
+  .dmEntry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    margin: 1px 8px;
+    border-radius: var(--radius-xs);
+    color: var(--sidebar-text);
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: background 120ms;
+  }
+  .dmEntry:hover {
+    background: var(--chat-sidebar-hover);
+    color: var(--sidebar-text-bright);
+  }
+  .dmAvatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #5d4037;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #e0d6cc;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .dmAvatarImg {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .onlineDot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--online);
+    border: 2px solid var(--chat-sidebar-bg);
+  }
+  .dmInfo {
+    flex: 1;
+    min-width: 0;
+  }
+  .dmName {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dmPreview {
+    font-size: 11.5px;
+    color: var(--sidebar-section);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dmTime {
+    font-size: 10px;
+    color: var(--sidebar-section);
+    font-family: var(--font-mono);
+    flex-shrink: 0;
+    align-self: flex-start;
+    padding-top: 2px;
+  }
+
+  /* ========= MESSAGE PANEL ========= */
+  .messagePanel {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  /* --- Room Header --- */
+  .roomHeader {
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 56px;
+    border-bottom: 1px solid var(--rule-soft);
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+  .roomHeaderInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .roomHeaderHash {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+  .roomHeaderName {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ink);
+    font-family: var(--font-body);
+  }
+  .roomHeaderDivider {
+    width: 1px;
+    height: 20px;
+    background: var(--rule-soft);
+    margin: 0 8px;
+  }
+  .roomHeaderDesc {
+    font-size: 13px;
+    color: var(--ink-faint);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .roomHeaderActions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .headerBtn {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-faint);
+    cursor: pointer;
+    transition: background 120ms, color 120ms;
+  }
+  .headerBtn:hover {
+    background: var(--paper-warm);
+    color: var(--ink);
+  }
+  .memberPills {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-right: 8px;
+  }
+  .memberPill {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+    margin-left: -6px;
+    overflow: hidden;
+  }
+  .memberPill:first-child { margin-left: 0; }
+  .memberPill img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .memberPillCount {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+    margin-left: -6px;
+    background: var(--paper-warm);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--ink-faint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+  }
+
+  /* --- Connection Status (subtle) --- */
+  .connectionBar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 24px;
+    font-size: 11px;
+    color: var(--good);
+    font-family: var(--font-mono);
+    background: rgba(47,110,74,0.06);
+    border-bottom: 1px solid rgba(47,110,74,0.1);
+  }
+  .connectionDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--good);
+  }
+
+  /* --- Message Feed --- */
+  .messageFeed {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0;
+  }
+
+  .dateBar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 24px;
+    margin: 8px 0;
+  }
+  .dateLine {
+    flex: 1;
+    height: 1px;
+    background: var(--rule-soft);
+  }
+  .dateText {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .messageGroup {
+    padding: 2px 24px;
+    margin: 0;
+    border-radius: 0;
+    transition: background 120ms;
+  }
+  .messageGroup:hover {
+    background: var(--paper);
+  }
+
+  .messageGroupHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 12px;
+    margin-bottom: 4px;
+  }
+
+  .msgAvatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .msgAvatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .msgAvatarFallback {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+  }
+
+  .msgAuthorRow {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .msgAuthor {
+    font-weight: 600;
+    font-size: 14.5px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .msgAuthor:hover { text-decoration: underline; }
+  .msgTimestamp {
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+  }
+  .msgBadge {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: var(--font-mono);
+  }
+
+  .msgBody {
+    padding-left: 46px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .msgBody p { margin: 0 0 2px; }
+  .msgBody p:last-child { margin-bottom: 0; }
+  .msgBody code {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: var(--paper-warm);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--ink-soft);
+  }
+  .msgBody a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .msgBody a:hover { text-decoration: underline; }
+
+  /* Continuation message (same author, no avatar) */
+  .msgContinuation {
+    padding-left: 46px;
+    padding-top: 1px;
+  }
+  .msgContinuation .msgBody {
+    padding-left: 0;
+  }
+
+  /* Hover timestamp for continuations */
+  .msgContinuation {
+    position: relative;
+  }
+  .msgContinuationTime {
+    position: absolute;
+    left: 4px;
+    top: 3px;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--ink-faint);
+    opacity: 0;
+    transition: opacity 120ms;
+  }
+  .messageGroup:hover .msgContinuationTime {
+    opacity: 1;
+  }
+
+  /* Hover actions */
+  .msgActions {
+    position: absolute;
+    top: -14px;
+    right: 24px;
+    display: flex;
+    gap: 1px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--radius-xs);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 100ms;
+    z-index: 2;
+  }
+  .messageGroup { position: relative; }
+  .messageGroup:hover .msgActions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .msgActionBtn {
+    width: 30px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-faint);
+    cursor: pointer;
+    transition: background 100ms, color 100ms;
+  }
+  .msgActionBtn:hover {
+    background: var(--paper-warm);
+    color: var(--ink);
+  }
+  .msgActionBtn:first-child { border-radius: 3px 0 0 3px; }
+  .msgActionBtn:last-child { border-radius: 0 3px 3px 0; }
+
+  /* Code block in message */
+  .codeBlock {
+    background: var(--ink);
+    color: #e0d6cc;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 6px 0;
+    overflow-x: auto;
+  }
+  .codeBlock .kw { color: #c792ea; }
+  .codeBlock .fn { color: #82aaff; }
+  .codeBlock .str { color: #c3e88d; }
+  .codeBlock .cm { color: #676e95; }
+
+  /* Image embed */
+  .msgImage {
+    margin: 6px 0;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    max-width: 400px;
+    border: 1px solid var(--rule-soft);
+  }
+  .msgImage img {
+    display: block;
+    width: 100%;
+  }
+
+  /* Reactions row */
+  .reactionsRow {
+    display: flex;
+    gap: 4px;
+    padding-left: 46px;
+    padding-top: 4px;
+  }
+  .reaction {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid var(--rule-soft);
+    background: var(--paper);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 120ms, border-color 120ms;
+  }
+  .reaction:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .reaction.mine {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .reactionEmoji { font-size: 14px; }
+  .reactionCount {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+  }
+
+  /* Typing indicator */
+  .typingBar {
+    padding: 6px 24px 6px 70px;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    font-style: italic;
+    min-height: 28px;
+  }
+  .typingDots {
+    display: inline-flex;
+    gap: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .typingDot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+    animation: typingBounce 1.4s ease-in-out infinite;
+  }
+  .typingDot:nth-child(2) { animation-delay: 0.2s; }
+  .typingDot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* ========= COMPOSER ========= */
+  .composer {
+    padding: 0 24px 20px;
+    flex-shrink: 0;
+  }
+  .composerInner {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 120ms, box-shadow 120ms;
+  }
+  .composerInner.focused {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .composerToolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .toolbarBtn {
+    width: 30px;
+    height: 28px;
+    border-radius: var(--radius-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-faint);
+    cursor: pointer;
+    transition: background 100ms, color 100ms;
+  }
+  .toolbarBtn:hover {
+    background: var(--paper-warm);
+    color: var(--ink);
+  }
+  .toolbarBtn.active {
+    background: var(--paper-warm);
+    color: var(--ink);
+  }
+  .toolbarDivider {
+    width: 1px;
+    height: 20px;
+    background: var(--rule-soft);
+    margin: 0 4px;
+  }
+
+  .composerInput {
+    padding: 10px 14px;
+    min-height: 42px;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .composerPlaceholder {
+    color: var(--ink-faint);
+  }
+
+  .composerFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+  }
+  .composerHint {
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+  }
+  .composerHint kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 3px;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule-soft);
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--ink-faint);
+  }
+  .sendButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    transition: opacity 120ms;
+  }
+  .sendButton:hover { opacity: 0.85; }
+
+  /* ========= BEGINNING MESSAGE ========= */
+  .beginning {
+    padding: 24px 24px 16px;
+  }
+  .beginningTitle {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .beginningDesc {
+    font-size: 14px;
+    color: var(--ink-faint);
+    margin-bottom: 12px;
+  }
+  .beginningRule {
+    height: 1px;
+    background: var(--rule-soft);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ========= MAIN SIDEBAR ========= -->
+  <nav class="mainSidebar">
+    <div class="wordmark">Syntrix<span class="dot">.</span></div>
+
+    <div class="navLabel">For you</div>
+    <a class="navItem" href="#">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Feed
+    </a>
+    <a class="navItem" href="#">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Explore
+    </a>
+    <a class="navItem active" href="#">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Chat
+    </a>
+    <a class="navItem" href="#">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      My profile
+    </a>
+
+    <div class="navLabel">Communities</div>
+    <a class="communityItem" href="#">
+      <span class="communityDot" style="background:#0d4d57"></span>
+      c/golang
+      <span class="memberCount">1</span>
+    </a>
+    <a class="communityItem" href="#">
+      <span class="communityDot" style="background:#5d2424"></span>
+      c/halo
+      <span class="memberCount">1</span>
+    </a>
+    <a class="communityItem" href="#">
+      <span class="communityDot" style="background:#1e3a5f"></span>
+      c/homelab
+      <span class="memberCount">1</span>
+    </a>
+    <a class="communityItem" href="#">
+      <span class="communityDot" style="background:#354823"></span>
+      c/proxmox
+      <span class="memberCount">1</span>
+    </a>
+    <a class="communityItem" href="#">
+      <span class="communityDot" style="background:#4a1e1e"></span>
+      c/security
+      <span class="memberCount">1</span>
+    </a>
+    <a class="communityItem" href="#">
+      <span class="communityDot" style="background:#3a2347"></span>
+      c/sre
+      <span class="memberCount">1</span>
+    </a>
+  </nav>
+
+  <!-- ========= CHAT AREA ========= -->
+  <div class="chatArea">
+
+    <!-- ========= ROOM LIST ========= -->
+    <div class="roomList">
+      <div class="roomListHeader">
+        <span class="roomListTitle">Channels</span>
+      </div>
+
+      <div class="roomListSearch">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search channels...
+      </div>
+
+      <!-- DMs -->
+      <div class="roomSection">
+        <span class="roomSectionLabel">Direct Messages</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="dmEntry">
+        <div class="dmAvatar">
+          <span>M</span>
+          <span class="onlineDot"></span>
+        </div>
+        <div class="dmInfo">
+          <div class="dmName">Mike Chen</div>
+          <div class="dmPreview">Hey, did you see the new PR?</div>
+        </div>
+        <span class="dmTime">2m</span>
+      </div>
+      <div class="dmEntry">
+        <div class="dmAvatar" style="background:#2f5d3a">
+          <span>S</span>
+        </div>
+        <div class="dmInfo">
+          <div class="dmName">Sarah Kim</div>
+          <div class="dmPreview">That deploy looks good</div>
+        </div>
+        <span class="dmTime">1h</span>
+      </div>
+
+      <!-- Go Programming -->
+      <div class="roomSection">
+        <span class="communityDot" style="background:#0d4d57"></span>
+        <span class="roomSectionLabel">Go Programming</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="roomEntry active">
+        <span class="roomHash">#</span>
+        <span class="roomName">general</span>
+      </div>
+      <div class="roomEntry">
+        <span class="roomHash">#</span>
+        <span class="roomName">code-review</span>
+        <span class="roomUnread">3</span>
+      </div>
+
+      <!-- Halo -->
+      <div class="roomSection">
+        <span class="communityDot" style="background:#5d2424"></span>
+        <span class="roomSectionLabel">Halo</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="roomEntry">
+        <span class="roomHash">#</span>
+        <span class="roomName">general</span>
+      </div>
+      <div class="roomEntry">
+        <span class="roomHash">#</span>
+        <span class="roomName">matchmaking</span>
+      </div>
+
+      <!-- Homelab -->
+      <div class="roomSection">
+        <span class="communityDot" style="background:#1e3a5f"></span>
+        <span class="roomSectionLabel">Homelab</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="roomEntry">
+        <span class="roomHash">#</span>
+        <span class="roomName">general</span>
+      </div>
+      <div class="roomEntry">
+        <span class="roomHash" style="font-size:11px">&#128274;</span>
+        <span class="roomName">admin-only</span>
+      </div>
+
+      <!-- Security -->
+      <div class="roomSection">
+        <span class="communityDot" style="background:#4a1e1e"></span>
+        <span class="roomSectionLabel">Security</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="roomEntry">
+        <span class="roomHash">#</span>
+        <span class="roomName">general</span>
+      </div>
+
+      <!-- SRE & DevOps -->
+      <div class="roomSection">
+        <span class="communityDot" style="background:#3a2347"></span>
+        <span class="roomSectionLabel">SRE & DevOps</span>
+        <span class="roomSectionAdd">+</span>
+      </div>
+      <div class="roomEntry">
+        <span class="roomHash">#</span>
+        <span class="roomName">general</span>
+      </div>
+      <div class="roomEntry">
+        <span class="roomHash">#</span>
+        <span class="roomName">incidents</span>
+      </div>
+    </div>
+
+    <!-- ========= MESSAGE PANEL ========= -->
+    <div class="messagePanel">
+
+      <!-- Room Header -->
+      <div class="roomHeader">
+        <div class="roomHeaderInfo">
+          <span class="roomHeaderHash">#</span>
+          <span class="roomHeaderName">general</span>
+          <span class="roomHeaderDivider"></span>
+          <span class="roomHeaderDesc">General discussion about Go</span>
+        </div>
+        <div class="memberPills">
+          <div class="memberPill"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=joe" alt=""></div>
+          <div class="memberPill"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=mike" alt=""></div>
+          <div class="memberPill"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=sarah" alt=""></div>
+          <div class="memberPillCount">+5</div>
+        </div>
+        <div class="roomHeaderActions">
+          <div class="headerBtn" title="Pin messages">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 1 1 0 0 0 1-1V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v1a1 1 0 0 0 1 1 1 1 0 0 1 1 1z"/></svg>
+          </div>
+          <div class="headerBtn" title="Members">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="headerBtn" title="Search in channel">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connection bar -->
+      <div class="connectionBar">
+        <span class="connectionDot"></span>
+        Connected
+      </div>
+
+      <!-- Message Feed -->
+      <div class="messageFeed">
+
+        <!-- Beginning -->
+        <div class="beginning">
+          <div class="beginningTitle"># general</div>
+          <div class="beginningDesc">This is the start of the <strong>#general</strong> channel in Go Programming. Say hello!</div>
+          <div class="beginningRule"></div>
+        </div>
+
+        <!-- Date separator -->
+        <div class="dateBar">
+          <span class="dateLine"></span>
+          <span class="dateText">June 24, 2026</span>
+          <span class="dateLine"></span>
+        </div>
+
+        <!-- Message group 1 -->
+        <div class="messageGroup">
+          <div class="msgActions">
+            <div class="msgActionBtn" title="React">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <div class="msgActionBtn" title="Reply">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+            </div>
+            <div class="msgActionBtn" title="Edit">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            </div>
+            <div class="msgActionBtn" title="More">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            </div>
+          </div>
+          <div class="messageGroupHeader">
+            <div class="msgAvatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=joe" alt="Joe"></div>
+            <div class="msgAuthorRow">
+              <span class="msgAuthor">Joe Clark</span>
+              <span class="msgBadge">Admin</span>
+              <span class="msgTimestamp">Yesterday at 10:14 AM</span>
+            </div>
+          </div>
+          <div class="msgBody">
+            <p>Hey everyone! Just set up this Go channel. If you're working on anything interesting with Go, this is the place to share.</p>
+          </div>
+          <div class="msgBody" style="margin-top: 4px;">
+            <p>I've been exploring the new <code>range over func</code> iterator pattern in Go 1.23 — anyone tried it in production yet?</p>
+          </div>
+          <div class="reactionsRow">
+            <span class="reaction mine">
+              <span class="reactionEmoji">&#128293;</span>
+              <span class="reactionCount">3</span>
+            </span>
+            <span class="reaction">
+              <span class="reactionEmoji">&#128077;</span>
+              <span class="reactionCount">2</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Message group 2 -->
+        <div class="messageGroup">
+          <div class="messageGroupHeader">
+            <div class="msgAvatarFallback">MC</div>
+            <div class="msgAuthorRow">
+              <span class="msgAuthor">Mike Chen</span>
+              <span class="msgTimestamp">Yesterday at 10:28 AM</span>
+            </div>
+          </div>
+          <div class="msgBody">
+            <p>Yeah! We just adopted the iter pattern for a streaming data pipeline. Works really well with <code>slices.Collect</code>. Here's a rough example:</p>
+            <div class="codeBlock"><span class="kw">func</span> <span class="fn">FilterUsers</span>(users iter.Seq[User]) iter.Seq[User] {
+    <span class="kw">return</span> <span class="kw">func</span>(yield <span class="kw">func</span>(User) <span class="kw">bool</span>) {
+        <span class="kw">for</span> u := <span class="kw">range</span> users {
+            <span class="kw">if</span> u.Active {
+                <span class="kw">if</span> !yield(u) { <span class="kw">return</span> }
+            }
+        }
+    }
+}</div>
+            <p>The lazy evaluation is the real win — no intermediate slices.</p>
+          </div>
+        </div>
+
+        <!-- Date separator -->
+        <div class="dateBar">
+          <span class="dateLine"></span>
+          <span class="dateText">Today</span>
+          <span class="dateLine"></span>
+        </div>
+
+        <!-- Message group 3 -->
+        <div class="messageGroup">
+          <div class="messageGroupHeader">
+            <div class="msgAvatar"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=joe" alt="Joe"></div>
+            <div class="msgAuthorRow">
+              <span class="msgAuthor">Joe Clark</span>
+              <span class="msgBadge">Admin</span>
+              <span class="msgTimestamp">9:52 AM</span>
+            </div>
+          </div>
+          <div class="msgBody">
+            <p>That's clean! The composability with <code>xiter</code> is great too.</p>
+          </div>
+          <!-- Continuation -->
+          <div class="msgContinuation">
+            <span class="msgContinuationTime">9:53</span>
+            <div class="msgBody">
+              <p>Btw, has anyone tried the new <code>log/slog</code> structured logger? Thinking of migrating from zerolog.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message group 4 -->
+        <div class="messageGroup">
+          <div class="messageGroupHeader">
+            <div class="msgAvatarFallback" style="background:#e8dfcf">SK</div>
+            <div class="msgAuthorRow">
+              <span class="msgAuthor">Sarah Kim</span>
+              <span class="msgTimestamp">10:05 AM</span>
+            </div>
+          </div>
+          <div class="msgBody">
+            <p>We made the switch last month. slog is simpler but you lose some zerolog niceties like <code>Str()</code> chaining. The handler interface makes it easy to write custom formatters though.</p>
+          </div>
+          <div class="reactionsRow">
+            <span class="reaction">
+              <span class="reactionEmoji">&#128173;</span>
+              <span class="reactionCount">1</span>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="typingBar">
+        <span class="typingDots">
+          <span class="typingDot"></span>
+          <span class="typingDot"></span>
+          <span class="typingDot"></span>
+        </span>
+        Mike is typing...
+      </div>
+
+      <!-- Composer -->
+      <div class="composer">
+        <div class="composerInner focused">
+          <div class="composerToolbar">
+            <div class="toolbarBtn" title="Bold">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+            </div>
+            <div class="toolbarBtn" title="Italic">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+            </div>
+            <div class="toolbarBtn" title="Code">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </div>
+            <div class="toolbarDivider"></div>
+            <div class="toolbarBtn" title="Link">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <div class="toolbarBtn" title="Attach file">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </div>
+          </div>
+          <div class="composerInput">
+            <span class="composerPlaceholder">Message #general</span>
+          </div>
+          <div class="composerFooter">
+            <span class="composerHint"><kbd>Enter</kbd> to send &middot; <kbd>Shift</kbd>+<kbd>Enter</kbd> new line</span>
+            <div class="sendButton">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
